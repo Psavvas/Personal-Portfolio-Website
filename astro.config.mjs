@@ -6,4 +6,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://paulsavvas.me',
   integrations: [react(), mdx(), sitemap()],
+  legacy: {
+    collectionsBackwardsCompat: true,
+  },
 });

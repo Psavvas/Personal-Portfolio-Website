@@ -11,12 +11,12 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.13",
-    "@astrojs/react": "^4.4.2",
-    "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/mdx": "^5.0.0",
+    "@astrojs/react": "^5.0.0",
+    "@astrojs/sitemap": "^3.7.1",
     "@tailwindcss/typography": "^0.5.19",
     "@vercel/analytics": "^1.6.1",
-    "astro": "^5.17.1",
+    "astro": "6.0.2",
     "gray-matter": "^4.0.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1"
