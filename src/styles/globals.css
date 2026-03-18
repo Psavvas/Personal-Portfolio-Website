@@ -212,8 +212,8 @@ li {
   }
 
   * {
-      transition: none !important;
-    }
+    transition: none !important;
+  }
 }
 
 /* =====================================================================
@@ -456,7 +456,7 @@ html.dark .hero {
 .hero .signal-card {
   padding: 14px 14px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--hero-text) 4%, transparent);
   border: 1px solid var(--hero-border);
   display: grid;
   gap: 6px;
@@ -487,7 +487,7 @@ html.dark .hero {
 }
 
 .hero .meta-block {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--hero-text) 4%, transparent);
   border: 1px solid var(--hero-border);
   border-radius: 12px;
   padding: 14px 16px;
@@ -502,7 +502,7 @@ html.dark .hero {
 
 .hero .meta-block.live-signal:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--hero-text) 7%, transparent);
   border-color: var(--hero-border);
 }
 .hero .meta-block--full {
@@ -591,6 +591,8 @@ html.dark .hero {
   .hero [data-reveal],
   .hero .live-pill {
     animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .hero .button,
