@@ -24,7 +24,7 @@ html.dark {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
@@ -170,9 +170,25 @@ body {
   transform: translateY(-2px);
 }
 
-/* Smooth transitions for theme changes */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
+/* Smooth transitions for theme changes — scoped to visible elements only */
+a,
+button,
+input,
+select,
+textarea,
+label,
+p,
+span,
+div,
+header,
+footer,
+nav,
+section,
+article,
+aside,
+main,
+li {
+  transition-property: background-color, border-color, color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -196,8 +212,8 @@ body {
   }
 
   * {
-    transition: none !important;
-  }
+      transition: none !important;
+    }
 }
 
 /* =====================================================================
@@ -324,7 +340,7 @@ html.dark .hero {
 }
 
 .hero .button.ghost {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--hero-text) 6%, transparent);
 }
 
 .hero .button.text {
@@ -351,7 +367,7 @@ html.dark .hero {
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--hero-text) 6%, transparent);
   border: 1px solid var(--hero-border);
   color: var(--hero-muted);
   font-size: 0.95rem;
@@ -364,7 +380,7 @@ html.dark .hero {
 
 .hero .chip:hover {
   border-color: var(--hero-border);
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--hero-text) 8%, transparent);
   color: var(--hero-text);
   transform: translateY(-2px);
 }
@@ -504,6 +520,7 @@ html.dark .hero {
 .hero .meta-block .value {
   color: var(--hero-text);
   font-weight: 600;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1px;
@@ -523,17 +540,14 @@ html.dark .hero {
   height: 20px;
   flex: 0 0 auto;
   display: block;
-  align-items: center;
-  justify-content: center;
   align-self: center;
-  transform: translateY(-8px);
   transition: transform var(--hero-transition);
 }
 
 .hero .meta-block .value-link:hover .value-arrow,
 .hero .meta-block .value-link:focus-visible .value-arrow,
 .hero .meta-block.live-signal:hover .value-arrow {
-  transform: translate(4px, -1px);
+  transform: translateX(4px);
 }
 
 /* Your markup uses data-reveal; ensure it's visible even without JS. */
