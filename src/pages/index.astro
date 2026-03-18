@@ -38,198 +38,168 @@ const blogCount = blogPosts.length;
   title="Paul Savvas"
   description="Paul Savvas — student engineer who builds practical tools across software, hardware, and 3D design."
 >
-  <div
-    class="min-h-screen bg-white font-sans dark:bg-neutral-950 transition-colors"
-  >
-    <main
-      class="mx-auto flex w-full max-w-6xl flex-col gap-16 bg-white px-6 py-24 dark:bg-neutral-950 sm:px-16 sm:py-32 animate-fade-in"
-    >
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-copy" data-reveal>
-            <p class="eyebrow">Student, Engineer, Developer and Leader</p>
-            <h1>Paul Savvas</h1>
-            <p class="lede">
-              Hello, I am a STEM Academy student who builds practical tools to
-              help the world work better. I combine engineering, design, and
-              systems thinking to create solutions that are clear, durable, and
-              genuinely useful. My work spans software, hardware, and 3D design,
-              where I test ideas in real conditions and refine them until they
-              hold up beyond the classroom. I value simplicity, structure, and
-              impact—and aim to ship tools that solve real problems and improve
-              over time.
-            </p>
-            <p class="lede">
-              This website showcases my projects, designs, and contributions
-              across various domains. Feel free to explore my work, and connect
-              with me on GitHub, Thingiverse, or Gravatar.
-            </p>
-            <div class="hero-actions">
-              <a
-                class="button ghost"
-                href="https://github.com/psavvas"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>
-              <a
-                class="button ghost"
-                href="https://www.thingiverse.com/psavvas"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Thingiverse
-              </a>
-              <a
-                class="button ghost"
-                href="https://gravatar.com/psavvas"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Gravatar
-              </a>
-            </div>
-            <div class="hero-chips">
-              <span class="chip">STEM Academy · Grade 10</span>
-              <span class="chip">Product + Engineering</span>
-            </div>
-          </div>
-          <div class="hero-panel card" data-reveal>
-            <div class="panel-head">
-              <span class="live-pill" aria-label="Live">LIVE</span>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block meta-block--full live-signal">
-                <p class="label">Latest project</p>
-                {
-                  latestProject ? (
-                    <a
-                      class="value value-link"
-                      href={`/projects/${slugFromId(latestProject.id)}`}
-                    >
-                      <span class="value-text">{latestProject.data.title}</span>
-                      <svg
-                        class="value-arrow"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          d="M5 12h12m0 0-4-4m4 4-4 4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                        />
-                      </svg>
-                    </a>
-                  ) : (
-                    <p class="value">New project coming soon</p>
-                  )
-                }
-              </div>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block meta-block--full live-signal">
-                <p class="label">Latest blog post</p>
-                {
-                  latestPost ? (
-                    <a
-                      class="value value-link"
-                      href={`/blog/${slugFromId(latestPost.id)}`}
-                    >
-                      <span class="value-text">{latestPost.data.title}</span>
-                      <svg
-                        class="value-arrow"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          d="M5 12h12m0 0-4-4m4 4-4 4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                        />
-                      </svg>
-                    </a>
-                  ) : (
-                    <p class="value">New post coming soon</p>
-                  )
-                }
-              </div>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block live-signal">
-                <p class="label">Projects</p>
-                <a class="value value-link" href="/projects">
-                  <span class="value-text">
-                    {projectCount}
-                    {projectCount === 1 ? 'project' : 'projects'}
-                  </span>
-                  <svg
-                    class="value-arrow"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M5 12h12m0 0-4-4m4 4-4 4"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"></path>
-                  </svg>
-                </a>
-              </div>
-              <div class="meta-block live-signal">
-                <p class="label">Blog posts</p>
-                <a class="value value-link" href="/blog">
-                  <span class="value-text">
-                    {blogCount}
-                    {blogCount === 1 ? 'post' : 'posts'}
-                  </span>
-                  <svg
-                    class="value-arrow"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M5 12h12m0 0-4-4m4 4-4 4"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"></path>
-                  </svg>
-                </a>
-              </div>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block live-signal">
-                <p class="label">School</p>
-                <p class="value">GMHS STEM Academy</p>
-              </div>
-              <div class="meta-block live-signal">
-                <p class="label">Location</p>
-                <p class="value">Maryland, USA</p>
-              </div>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block meta-block--full live-signal">
-                <p class="label">Languages</p>
-                <p class="value">English, French, Spanish (Intermediate)</p>
-              </div>
-            </div>
-          </div>
+  <main class="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+    <section class="grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+      <div class="animate-fade-in-up">
+        <p
+          class="text-sm font-medium uppercase tracking-wider text-neutral-600 dark:text-neutral-400"
+        >
+          Student Engineer · Builder
+        </p>
+        <h1
+          class="mt-4 text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-5xl"
+        >
+          Clean, practical projects across software, hardware, and 3D design.
+        </h1>
+        <p
+          class="mt-6 max-w-2xl text-base leading-7 text-neutral-700 dark:text-neutral-300"
+        >
+          I'm Paul Savvas, a STEM Academy student building tools that are simple
+          to understand and reliable in real use. I focus on thoughtful
+          engineering, clear communication, and measurable outcomes.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a
+            class="inline-flex items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
+            href="/projects"
+          >
+            View projects
+          </a>
+          <a
+            class="inline-flex items-center justify-center rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-900"
+            href="/blog"
+          >
+            Read blog
+          </a>
+          <a
+            class="inline-flex items-center justify-center rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-900"
+            href="/contact"
+          >
+            Contact me
+          </a>
         </div>
-      </section>
-    </main>
-  </div>
+      </div>
+
+      <aside
+        class="animate-fade-in-up rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950"
+      >
+        <h2
+          class="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+        >
+          Latest updates
+        </h2>
+        <dl class="mt-5 space-y-4 text-sm">
+          <div>
+            <dt class="text-neutral-500 dark:text-neutral-400">
+              Latest project
+            </dt>
+            <dd class="mt-1">
+              {
+                latestProject ? (
+                  <a
+                    href={`/projects/${slugFromId(latestProject.id)}`}
+                    class="font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900 dark:text-neutral-100 dark:decoration-neutral-700 dark:hover:decoration-neutral-100"
+                  >
+                    {latestProject.data.title}
+                  </a>
+                ) : (
+                  <span class="text-neutral-700 dark:text-neutral-300">
+                    New project coming soon
+                  </span>
+                )
+              }
+            </dd>
+          </div>
+          <div>
+            <dt class="text-neutral-500 dark:text-neutral-400">
+              Latest blog post
+            </dt>
+            <dd class="mt-1">
+              {
+                latestPost ? (
+                  <a
+                    href={`/blog/${slugFromId(latestPost.id)}`}
+                    class="font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900 dark:text-neutral-100 dark:decoration-neutral-700 dark:hover:decoration-neutral-100"
+                  >
+                    {latestPost.data.title}
+                  </a>
+                ) : (
+                  <span class="text-neutral-700 dark:text-neutral-300">
+                    New post coming soon
+                  </span>
+                )
+              }
+            </dd>
+          </div>
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div
+              class="rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-800"
+            >
+              <dt class="text-neutral-500 dark:text-neutral-400">Projects</dt>
+              <dd
+                class="mt-1 font-medium text-neutral-900 dark:text-neutral-100"
+              >
+                {projectCount}
+              </dd>
+            </div>
+            <div
+              class="rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-800"
+            >
+              <dt class="text-neutral-500 dark:text-neutral-400">Posts</dt>
+              <dd
+                class="mt-1 font-medium text-neutral-900 dark:text-neutral-100"
+              >
+                {blogCount}
+              </dd>
+            </div>
+          </div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article
+        class="animate-fade-in-up rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950"
+      >
+        <h3
+          class="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+        >
+          Software
+        </h3>
+        <p
+          class="mt-2 text-sm leading-6 text-neutral-700 dark:text-neutral-300"
+        >
+          Utilities and web tools with clear architecture and maintainable code.
+        </p>
+      </article>
+      <article
+        class="animate-fade-in-up rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950"
+      >
+        <h3
+          class="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+        >
+          Hardware
+        </h3>
+        <p
+          class="mt-2 text-sm leading-6 text-neutral-700 dark:text-neutral-300"
+        >
+          Projects that balance electronics, sensing, and practical constraints.
+        </p>
+      </article>
+      <article
+        class="animate-fade-in-up rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950 sm:col-span-2 lg:col-span-1"
+      >
+        <h3
+          class="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+        >
+          3D Design
+        </h3>
+        <p
+          class="mt-2 text-sm leading-6 text-neutral-700 dark:text-neutral-300"
+        >
+          Prototypes and printable parts refined through iterative testing.
+        </p>
+      </article>
+    </section>
+  </main>
 </BaseLayout>

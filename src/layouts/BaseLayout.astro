@@ -24,6 +24,12 @@ const navEntries = [
   { label: 'Blog', path: '/blog' },
   { label: 'Contact', path: '/contact' },
 ];
+const currentPath = Astro.url.pathname;
+
+function navIsActive(path: string) {
+  if (path === '/') return currentPath === '/';
+  return currentPath === path || currentPath.startsWith(`${path}/`);
+}
 
 const currentYear = new Date().getFullYear();
 ---
@@ -54,20 +60,15 @@ const currentYear = new Date().getFullYear();
     {/* Inline theme initialisation — runs before paint to avoid flash */}
     <script is:inline>
       (function applyStoredTheme() {
-        var stored = localStorage.getItem('ps-theme');
+        var stored = null;
+        try {
+          stored = localStorage.getItem('ps-theme');
+        } catch (_error) {}
         var prefersDark = window.matchMedia(
           '(prefers-color-scheme: dark)'
         ).matches;
         var useDark = stored === 'dark' || (stored !== 'light' && prefersDark);
         document.documentElement.classList.toggle('dark', useDark);
-      })();
-
-      // Navbar entrance animation — only on first site load in this session
-      (function navbarEntrance() {
-        if (!sessionStorage.getItem('ps-visited')) {
-          document.documentElement.classList.add('navbar-animate');
-          sessionStorage.setItem('ps-visited', '1');
-        }
       })();
     </script>
   </head>
@@ -75,61 +76,50 @@ const currentYear = new Date().getFullYear();
   <body>
     {/* ── Navbar ── */}
     <header
-      id="ps-navbar"
-      class="sticky top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur transition-colors"
+      class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90"
     >
-      <nav
-        class="mx-auto grid h-16 md:h-14 max-w-6xl grid-cols-3 items-center px-4 sm:px-6"
-      >
-        {/* Brand */}
-        <div class="flex items-center">
+      <nav class="mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="flex h-16 items-center justify-between gap-3">
           <a
             href="/"
-            id="ps-navbar-brand"
-            class="inline-flex h-10 md:h-8 items-center text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 transition-colors shrink-0 leading-none"
+            class="inline-flex items-center rounded-md text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
           >
-            PS
+            Paul Savvas
           </a>
-        </div>
 
-        {/* Navigation links */}
-        <div id="ps-navbar-links" class="flex items-center justify-center">
-          <ul class="flex items-center gap-3 sm:gap-6">
+          <div class="hidden items-center gap-1 md:flex">
             {
               navEntries.map((entry) => (
-                <li class="flex">
-                  <a
-                    href={entry.path}
-                    class="inline-flex h-10 md:h-8 items-center text-sm font-medium text-neutral-600 dark:text-neutral-400 transition-colors hover:text-neutral-900 dark:hover:text-neutral-100 leading-none"
-                  >
-                    {entry.label}
-                  </a>
-                </li>
+                <a
+                  href={entry.path}
+                  class={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${
+                    navIsActive(entry.path)
+                      ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
+                      : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100'
+                  }`}
+                  aria-current={navIsActive(entry.path) ? 'page' : undefined}
+                >
+                  {entry.label}
+                </a>
               ))
             }
-          </ul>
-        </div>
+          </div>
 
-        {/* Theme toggle */}
-        <div class="flex items-center justify-end">
-          <div
-            id="ps-navbar-theme"
-            class="inline-flex h-10 md:h-8 items-center"
-          >
+          <div class="flex items-center gap-1">
             <button
               id="ps-theme-btn"
               type="button"
-              aria-label="Toggle colour theme"
-              class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
+              aria-label="Toggle theme"
+              class="inline-flex rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
               <svg
                 id="ps-theme-icon"
-                class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
+                class="h-5 w-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                <!-- Sun icon (light mode) -->
                 <path
                   id="icon-light"
                   class="hidden"
@@ -138,7 +128,6 @@ const currentYear = new Date().getFullYear();
                   stroke-width="2"
                   d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
                 ></path>
-                <!-- Moon icon (dark mode) -->
                 <path
                   id="icon-dark"
                   class="hidden"
@@ -147,7 +136,6 @@ const currentYear = new Date().getFullYear();
                   stroke-width="2"
                   d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
                 ></path>
-                <!-- Computer icon (system mode) -->
                 <path
                   id="icon-system"
                   class="hidden"
@@ -158,7 +146,51 @@ const currentYear = new Date().getFullYear();
                 ></path>
               </svg>
             </button>
+
+            <button
+              id="ps-menu-btn"
+              type="button"
+              aria-label="Toggle navigation menu"
+              aria-expanded="false"
+              class="inline-flex rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 md:hidden"
+            >
+              <svg
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
           </div>
+        </div>
+
+        <div id="ps-mobile-nav" class="hidden pb-4 md:hidden">
+          <ul class="grid gap-1">
+            {
+              navEntries.map((entry) => (
+                <li>
+                  <a
+                    href={entry.path}
+                    class={`block rounded-md px-3 py-2 text-sm font-medium ${
+                      navIsActive(entry.path)
+                        ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
+                        : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100'
+                    }`}
+                    aria-current={navIsActive(entry.path) ? 'page' : undefined}
+                  >
+                    {entry.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
         </div>
       </nav>
     </header>
@@ -189,23 +221,36 @@ const currentYear = new Date().getFullYear();
     <script is:inline>
       (function setupThemeToggle() {
         var modes = ['light', 'dark', 'system'];
+        var labels = {
+          light: 'Light',
+          dark: 'Dark',
+          system: 'System',
+        };
 
-        function currentMode() {
-          return localStorage.getItem('ps-theme') || 'system';
+        function readMode() {
+          try {
+            var stored = localStorage.getItem('ps-theme');
+            return modes.indexOf(stored || '') >= 0 ? stored : 'system';
+          } catch (_error) {
+            return 'system';
+          }
+        }
+
+        function writeMode(mode) {
+          try {
+            localStorage.setItem('ps-theme', mode);
+          } catch (_error) {}
         }
 
         function applyMode(mode) {
-          var prefersDark = window.matchMedia(
-            '(prefers-color-scheme: dark)'
-          ).matches;
+          var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+          var prefersDark = mediaQuery.matches;
           var shouldBeDark =
             mode === 'dark' || (mode === 'system' && prefersDark);
           document.documentElement.classList.toggle('dark', shouldBeDark);
         }
 
-        function refreshIcon() {
-          var mode = currentMode();
-          // Hide all icons
+        function refreshIcon(mode) {
           var iconLight = document.getElementById('icon-light');
           var iconDark = document.getElementById('icon-dark');
           var iconSystem = document.getElementById('icon-system');
@@ -214,7 +259,6 @@ const currentYear = new Date().getFullYear();
           if (iconDark) iconDark.classList.add('hidden');
           if (iconSystem) iconSystem.classList.add('hidden');
 
-          // Show the appropriate icon
           if (mode === 'light' && iconLight) {
             iconLight.classList.remove('hidden');
           } else if (mode === 'dark' && iconDark) {
@@ -224,26 +268,82 @@ const currentYear = new Date().getFullYear();
           }
         }
 
+        function refreshThemeButton(mode) {
+          var btn = document.getElementById('ps-theme-btn');
+          if (!btn) return;
+          var idx = modes.indexOf(mode);
+          var next = modes[(idx + 1) % modes.length];
+          btn.setAttribute(
+            'aria-label',
+            'Theme: ' +
+              labels[mode] +
+              '. Activate to switch to ' +
+              labels[next] +
+              '.'
+          );
+        }
+
+        function applyAndRefresh(mode) {
+          applyMode(mode);
+          refreshIcon(mode);
+          refreshThemeButton(mode);
+        }
+
         var btn = document.getElementById('ps-theme-btn');
         if (btn) {
           btn.addEventListener('click', function () {
-            var idx = modes.indexOf(currentMode());
+            var current = readMode();
+            var idx = modes.indexOf(current);
             var next = modes[(idx + 1) % modes.length];
-            localStorage.setItem('ps-theme', next);
-            applyMode(next);
-            refreshIcon();
+            writeMode(next);
+            applyAndRefresh(next);
           });
         }
 
-        // React to OS-level changes when mode is "system"
-        window
-          .matchMedia('(prefers-color-scheme: dark)')
-          .addEventListener('change', function () {
-            applyMode(currentMode());
-          });
+        var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        function handleSchemeChange() {
+          var mode = readMode();
+          if (mode === 'system') {
+            applyAndRefresh(mode);
+          }
+        }
+        if (typeof mediaQuery.addEventListener === 'function') {
+          mediaQuery.addEventListener('change', handleSchemeChange);
+        } else if (typeof mediaQuery.addListener === 'function') {
+          mediaQuery.addListener(handleSchemeChange);
+        }
 
-        applyMode(currentMode());
-        refreshIcon();
+        applyAndRefresh(readMode());
+      })();
+
+      (function setupMobileMenu() {
+        var menuButton = document.getElementById('ps-menu-btn');
+        var mobileNav = document.getElementById('ps-mobile-nav');
+        if (!menuButton || !mobileNav) return;
+
+        function setOpen(isOpen) {
+          mobileNav.classList.toggle('hidden', !isOpen);
+          menuButton.setAttribute('aria-expanded', String(isOpen));
+        }
+
+        menuButton.addEventListener('click', function () {
+          var isOpen = menuButton.getAttribute('aria-expanded') === 'true';
+          setOpen(!isOpen);
+        });
+
+        mobileNav.querySelectorAll('a').forEach(function (anchor) {
+          anchor.addEventListener('click', function () {
+            setOpen(false);
+          });
+        });
+
+        window.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') setOpen(false);
+        });
+
+        window.addEventListener('resize', function () {
+          if (window.innerWidth >= 768) setOpen(false);
+        });
       })();
     </script>
   </body>
