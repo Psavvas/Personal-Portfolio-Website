@@ -1,7 +1,6 @@
 // Short-link destinations keyed by slug.
 // Values starting with "/" are treated as same-origin paths.
 export const shortlinks: Record<string, string> = {
-  example: 'https://example.com',
   infantguard: '/projects/infantguard',
   contact: 'https://psavvas.notion.site/15770b9af471809da736d4e77a090ce0',
   linkedin: 'https://www.linkedin.com/in/pauldsavvas',
@@ -10,6 +9,7 @@ export const shortlinks: Record<string, string> = {
   thingiverse: 'https://www.thingiverse.com/psavvas',
   savvas3dprinting: 'https://psavvas.notion.site/savvas-3d-printing',
   notion: 'https://www.notion.com/@paulsavvas',
+  resume: 'https://1drv.ms/b/c/ee91ca8e4e8d70e0/IQBnww0L4qKBT7mxoaeF_nfsAZG_na-FP1AFykMiiQpW_XM?e=qrSlXL',
 };
 
 // Project catalogue used by the projects listing page.
