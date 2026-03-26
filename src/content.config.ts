@@ -7,6 +7,13 @@ const blogCollection = defineCollection({
     date: z.string(),
     summary: z.string(),
     tags: z.array(z.string()).optional(),
+    featuredProject: z
+      .object({
+        title: z.string(),
+        slug: z.string(),
+        description: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -25,6 +32,13 @@ const projectsCollection = defineCollection({
           primary: z.boolean().optional(),
         })
       )
+      .optional(),
+    featuredPost: z
+      .object({
+        title: z.string(),
+        slug: z.string(),
+        description: z.string().optional(),
+      })
       .optional(),
   }),
 });
