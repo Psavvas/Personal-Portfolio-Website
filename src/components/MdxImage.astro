@@ -1,0 +1,54 @@
+---
+import { Image } from 'astro:assets';
+
+const {
+  class: classAttr,
+  className,
+  src,
+  alt = '',
+  width,
+  height,
+  ...rest
+} = Astro.props;
+
+const parsedWidth =
+  typeof width === 'string' ? Number.parseInt(width, 10) : width;
+const parsedHeight =
+  typeof height === 'string' ? Number.parseInt(height, 10) : height;
+
+const hasDimensions =
+  typeof parsedWidth === 'number' &&
+  Number.isFinite(parsedWidth) &&
+  parsedWidth > 0 &&
+  typeof parsedHeight === 'number' &&
+  Number.isFinite(parsedHeight) &&
+  parsedHeight > 0;
+
+const mergedClass = className ?? classAttr;
+const isGithubAttachment =
+  typeof src === 'string' && src.includes('github.com/user-attachments/');
+---
+
+{
+  isGithubAttachment ? (
+    <img
+      src={src}
+      alt={alt}
+      width={parsedWidth}
+      height={parsedHeight}
+      class={mergedClass}
+      {...rest}
+    />
+  ) : hasDimensions ? (
+    <Image
+      src={src}
+      alt={alt}
+      width={parsedWidth}
+      height={parsedHeight}
+      class={mergedClass}
+      {...rest}
+    />
+  ) : (
+    <Image src={src} alt={alt} inferSize class={mergedClass} {...rest} />
+  )
+}
