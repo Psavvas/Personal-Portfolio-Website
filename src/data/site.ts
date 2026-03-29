@@ -30,7 +30,7 @@ export const catalogue: CatalogueEntry[] = [
     summary:
       'Infant Guard is a fully integrated, Arduino-driven safety platform engineered to detect forgotten infants in vehicles and escalate alerts before temperatures reach life-threatening levels.',
     tags: ['Arduino', 'IoT', 'Safety', 'Hardware'],
-    year: ['2025'],
+    year: ['2026'],
     featured: true,
     projectPage: 'infantguard',
   },
