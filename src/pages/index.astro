@@ -67,7 +67,7 @@ const blogCount = blogPosts.length;
             </p>
             <div class="hero-actions">
               <a
-                class="button ghost"
+                class="site-btn site-btn--ghost hover-lift"
                 href="https://github.com/psavvas"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -75,7 +75,7 @@ const blogCount = blogPosts.length;
                 GitHub
               </a>
               <a
-                class="button ghost"
+                class="site-btn site-btn--ghost hover-lift"
                 href="https://www.thingiverse.com/psavvas"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -83,7 +83,7 @@ const blogCount = blogPosts.length;
                 Thingiverse
               </a>
               <a
-                class="button ghost"
+                class="site-btn site-btn--ghost hover-lift"
                 href="https://gravatar.com/psavvas"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -98,11 +98,32 @@ const blogCount = blogPosts.length;
           </div>
           <div class="hero-panel card" data-reveal>
             <div class="panel-head">
-              <span class="live-pill" aria-label="Live">LIVE</span>
+              <p class="status-label">STATUS</p>
+              <span class="live-pill" aria-label="Live">
+                <span class="live-dot" aria-hidden="true"></span>
+                Live
+              </span>
             </div>
             <div class="meta-row">
               <div class="meta-block meta-block--full live-signal">
-                <p class="label">Latest project</p>
+                <p class="label inline-flex items-center gap-1.5">
+                  <svg
+                    class="h-3.5 w-3.5 opacity-70"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Zm0 4.5 9 4.5 9-4.5M3 16.5 12 21l9-4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    ></path>
+                  </svg>
+                  Latest project
+                </p>
                 {
                   latestProject ? (
                     <a
@@ -134,7 +155,24 @@ const blogCount = blogPosts.length;
             </div>
             <div class="meta-row">
               <div class="meta-block meta-block--full live-signal">
-                <p class="label">Latest blog post</p>
+                <p class="label inline-flex items-center gap-1.5">
+                  <svg
+                    class="h-3.5 w-3.5 opacity-70"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Zm3 4h8m-8 4h8m-8 4h5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    ></path>
+                  </svg>
+                  Latest blog post
+                </p>
                 {
                   latestPost ? (
                     <a
@@ -164,11 +202,28 @@ const blogCount = blogPosts.length;
                 }
               </div>
             </div>
-            <div class="meta-row">
+            <div class="meta-row meta-row--counts">
               <div class="meta-block live-signal">
-                <p class="label">Projects</p>
+                <p class="label inline-flex items-center gap-1.5">
+                  <svg
+                    class="h-3.5 w-3.5 opacity-70"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M4.5 7.5h15v12h-15Zm0 0 3-3h9l3 3"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    ></path>
+                  </svg>
+                  Projects
+                </p>
                 <a class="value value-link" href="/projects">
-                  <span class="value-text">
+                  <span class="value-text value-count">
                     {projectCount}
                     {projectCount === 1 ? 'project' : 'projects'}
                   </span>
@@ -189,9 +244,26 @@ const blogCount = blogPosts.length;
                 </a>
               </div>
               <div class="meta-block live-signal">
-                <p class="label">Blog posts</p>
+                <p class="label inline-flex items-center gap-1.5">
+                  <svg
+                    class="h-3.5 w-3.5 opacity-70"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V7A1.5 1.5 0 0 1 5 5.5Zm2.5 4h9m-9 3.5h9"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    ></path>
+                  </svg>
+                  Blog posts
+                </p>
                 <a class="value value-link" href="/blog">
-                  <span class="value-text">
+                  <span class="value-text value-count">
                     {blogCount}
                     {blogCount === 1 ? 'post' : 'posts'}
                   </span>
@@ -214,18 +286,46 @@ const blogCount = blogPosts.length;
             </div>
             <div class="meta-row">
               <div class="meta-block live-signal">
-                <p class="label">School</p>
+                <p class="label inline-flex items-center gap-1.5">
+                  <svg
+                    class="h-3.5 w-3.5 opacity-70"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M3 9.5 12 5l9 4.5-9 4.5-9-4.5Zm3 3.2V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-3.3"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    ></path>
+                  </svg>
+                  School
+                </p>
                 <p class="value">GMHS STEM Academy</p>
               </div>
               <div class="meta-block live-signal">
-                <p class="label">Location</p>
+                <p class="label inline-flex items-center gap-1.5">
+                  <svg
+                    class="h-3.5 w-3.5 opacity-70"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M12 20s6-5.1 6-10a6 6 0 1 0-12 0c0 4.9 6 10 6 10Zm0-8a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    ></path>
+                  </svg>
+                  Location
+                </p>
                 <p class="value">Maryland, USA</p>
-              </div>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block meta-block--full live-signal">
-                <p class="label">Languages</p>
-                <p class="value">English, French, Spanish (Intermediate)</p>
               </div>
             </div>
           </div>
