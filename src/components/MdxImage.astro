@@ -24,7 +24,9 @@ const hasDimensions =
   Number.isFinite(parsedHeight) &&
   parsedHeight > 0;
 
-const mergedClass = className ?? classAttr;
+const mergedClass = [className ?? classAttr, 'h-auto max-w-full']
+  .filter(Boolean)
+  .join(' ');
 const isGithubAttachment =
   typeof src === 'string' && src.includes('github.com/user-attachments/');
 ---

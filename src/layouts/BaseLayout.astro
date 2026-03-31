@@ -79,7 +79,7 @@ const currentYear = new Date().getFullYear();
       class="sticky top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur transition-colors"
     >
       <nav
-        class="mx-auto grid h-16 md:h-14 max-w-6xl grid-cols-3 items-center px-4 sm:px-6"
+        class="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 md:grid-cols-3 md:gap-y-0 md:py-0 md:h-14"
       >
         {/* Brand */}
         <div class="flex items-center">
@@ -93,8 +93,11 @@ const currentYear = new Date().getFullYear();
         </div>
 
         {/* Navigation links */}
-        <div id="ps-navbar-links" class="flex items-center justify-center">
-          <ul class="flex items-center gap-3 sm:gap-6">
+        <div
+          id="ps-navbar-links"
+          class="col-span-2 md:col-span-1 md:col-start-2 flex items-center justify-start md:justify-center overflow-x-auto"
+        >
+          <ul class="flex min-w-max items-center gap-3 sm:gap-6">
             {
               navEntries.map((entry) => (
                 <li class="flex">
@@ -111,7 +114,7 @@ const currentYear = new Date().getFullYear();
         </div>
 
         {/* Theme toggle */}
-        <div class="flex items-center justify-end">
+        <div class="flex items-center justify-end md:col-start-3">
           <div
             id="ps-navbar-theme"
             class="inline-flex h-10 md:h-8 items-center"
