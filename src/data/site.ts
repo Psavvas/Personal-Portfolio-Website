@@ -9,7 +9,7 @@ export const shortlinks: Record<string, string> = {
   thingiverse: 'https://www.thingiverse.com/psavvas',
   savvas3dprinting: 'https://psavvas.notion.site/savvas-3d-printing',
   notion: 'https://www.notion.com/@paulsavvas',
-  resume: 'https://1drv.ms/b/c/ee91ca8e4e8d70e0/IQBnww0L4qKBT7mxoaeF_nfsAZG_na-FP1AFykMiiQpW_XM?e=qrSlXL',
+  resume: 'https://1drv.ms/b/c/ee91ca8e4e8d70e0/IQBnww0L4qKBT7mxoaeF_nfsAZHoybYILbyiG_T95FYR-O8?e=kGCRPN',
 };
 
 // Project catalogue used by the projects listing page.
