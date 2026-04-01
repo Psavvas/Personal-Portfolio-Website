@@ -174,12 +174,32 @@ const currentYear = new Date().getFullYear();
       class="w-full border-t border-gray-200 dark:border-neutral-800 transition-colors"
     >
       <div
-        class="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500 dark:text-neutral-400"
+        class="mx-auto max-w-7xl px-6 py-6 grid w-full grid-cols-1 gap-3 text-center sm:grid-cols-3 sm:items-center sm:text-sm text-sm text-gray-500 dark:text-neutral-400"
       >
-        <span>&copy; {currentYear} Paul Savvas. All rights reserved.</span>
+        <span class="sm:justify-self-start">&copy; {currentYear} Paul Savvas. All rights reserved.</span>
+        <div aria-label="System status widget" class="justify-self-center h-[45px] w-[170px] overflow-hidden">
+          <iframe
+            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/light-md"
+            width="200"
+            height="53"
+            frameborder="0"
+            scrolling="no"
+            style="border: none; transform: scale(0.85); transform-origin: top left;"
+            class="dark:hidden"
+          ></iframe>
+          <iframe
+            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/dark-md"
+            width="200"
+            height="53"
+            frameborder="0"
+            scrolling="no"
+            style="border: none; transform: scale(0.85); transform-origin: top left;"
+            class="hidden dark:block"
+          ></iframe>
+        </div>
         <a
           href="https://astro.build"
-          class="mt-2 sm:mt-0 hover:underline"
+          class="hover:underline sm:justify-self-end"
           target="_blank"
           rel="noopener noreferrer"
         >
