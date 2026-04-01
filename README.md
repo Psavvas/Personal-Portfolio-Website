@@ -1,24 +1,24 @@
 # Personal site
 
-Next.js (App Router) + TypeScript, built and deployed for Vercel. Uses pnpm as the package manager for local development and production builds.
+Next.js (App Router) + TypeScript, built and deployed for Vercel. Uses Bun as the package manager for local development and production builds.
 
 - Quick guide: see [docs/guide.md](docs/guide.md) for routing, content editing, and deployment notes.
 
 ## Quick start
 
 ```bash
-pnpm install
-pnpm dev
+bun install
+bun dev
 ```
 
 Then open <http://localhost:3000>. Pages live under `app/` and hot-reload as you edit.
 
 ## Scripts
 
-- `pnpm dev` — start the dev server
-- `pnpm lint` — ESLint with zero warnings allowed
-- `pnpm typecheck` — TypeScript project check
-- `pnpm format` / `pnpm format:check` — Prettier
+- `bun dev` — start the dev server
+- `bun build` — build for production
+- `bun preview` — preview the production build locally
+- `bun format` / `bun format:check` — Prettier
 
 ## Content and routes
 
