@@ -174,37 +174,41 @@ const currentYear = new Date().getFullYear();
       class="w-full border-t border-gray-200 dark:border-neutral-800 transition-colors"
     >
       <div
-        class="mx-auto max-w-7xl px-6 py-6 grid w-full grid-cols-1 gap-3 text-center sm:grid-cols-3 sm:items-center sm:text-sm text-sm text-gray-500 dark:text-neutral-400"
+        class="mx-auto max-w-7xl px-6 py-6 flex w-full items-center justify-between gap-3 text-sm text-gray-500 dark:text-neutral-400"
       >
-        <span class="sm:justify-self-start">&copy; {currentYear} Paul Savvas. All rights reserved.</span>
-        <div aria-label="System status widget" class="justify-self-center h-[45px] w-[170px] overflow-hidden">
+        <span>&copy; {currentYear} Paul Savvas. All rights reserved.</span>
+        <div class="flex items-center gap-3">
+          <a
+            href="https://astro.build"
+            class="hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Built with Astro
+          </a>
+          <div class="inline-flex h-[39px] w-[132px] items-center overflow-hidden" aria-label="Service status">
           <iframe
-            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/light-md"
-            width="200"
-            height="53"
+            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/light-sm"
+            width="160"
+            height="42"
             frameborder="0"
             scrolling="no"
-            style="border: none; transform: scale(0.85); transform-origin: top left;"
             class="dark:hidden"
+            style="border: none; transform: scale(0.78); transform-origin: left center;"
+            title="Service status (light mode)"
           ></iframe>
           <iframe
-            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/dark-md"
-            width="200"
-            height="53"
+            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/dark-sm"
+            width="160"
+            height="42"
             frameborder="0"
             scrolling="no"
-            style="border: none; transform: scale(0.85); transform-origin: top left;"
             class="hidden dark:block"
+            style="border: none; transform: scale(0.78); transform-origin: left center;"
+            title="Service status (dark mode)"
           ></iframe>
         </div>
-        <a
-          href="https://astro.build"
-          class="hover:underline sm:justify-self-end"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Built with Astro
-        </a>
+        </div>
       </div>
     </footer>
 
