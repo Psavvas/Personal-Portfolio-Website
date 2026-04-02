@@ -356,12 +356,14 @@ const blogCount = blogPosts.length;
             pillBorder: '#b8eac8',
             text: '#1f7a43',
             dot: '#22c55e',
+            glow: 'rgba(34, 197, 94, 0.32)',
           },
           dark: {
             pillBg: '#0b1a12',
             pillBorder: '#163724',
             text: '#74c892',
             dot: '#2fb15a',
+            glow: 'rgba(47, 177, 90, 0.32)',
           },
         },
         HASISSUES: {
@@ -371,12 +373,14 @@ const blogCount = blogPosts.length;
             pillBorder: '#fed7aa',
             text: '#9a3412',
             dot: '#f97316',
+            glow: 'rgba(249, 115, 22, 0.32)',
           },
           dark: {
             pillBg: '#2a1608',
             pillBorder: '#7c2d12',
             text: '#fdba74',
             dot: '#f97316',
+            glow: 'rgba(249, 115, 22, 0.32)',
           },
         },
         UNDERMAINTENANCE: {
@@ -386,12 +390,14 @@ const blogCount = blogPosts.length;
             pillBorder: '#bfdbfe',
             text: '#1e40af',
             dot: '#3b82f6',
+            glow: 'rgba(59, 130, 246, 0.32)',
           },
           dark: {
             pillBg: '#0f1b38',
             pillBorder: '#1e3a8a',
             text: '#93c5fd',
             dot: '#3b82f6',
+            glow: 'rgba(59, 130, 246, 0.32)',
           },
         },
         DOWN: {
@@ -401,12 +407,14 @@ const blogCount = blogPosts.length;
             pillBorder: '#fecaca',
             text: '#b91c1c',
             dot: '#ef4444',
+            glow: 'rgba(239, 68, 68, 0.32)',
           },
           dark: {
             pillBg: '#2b0d0d',
             pillBorder: '#7f1d1d',
             text: '#fca5a5',
             dot: '#ef4444',
+            glow: 'rgba(239, 68, 68, 0.32)',
           },
         },
         UNKNOWN: {
@@ -416,12 +424,14 @@ const blogCount = blogPosts.length;
             pillBorder: '#d4d4d8',
             text: '#52525b',
             dot: '#71717a',
+            glow: 'rgba(113, 113, 122, 0.32)',
           },
           dark: {
             pillBg: '#121212',
             pillBorder: '#303030',
             text: '#d4d4d8',
             dot: '#a1a1aa',
+            glow: 'rgba(161, 161, 170, 0.32)',
           },
         },
       };
@@ -441,6 +451,7 @@ const blogCount = blogPosts.length;
         pillEl.style.borderColor = palette.pillBorder;
         pillEl.style.color = palette.text;
         dotEl.style.backgroundColor = palette.dot;
+        dotEl.style.setProperty('--hero-live-dot-glow', palette.glow);
       }
 
       function syncStatusVisualTheme() {
