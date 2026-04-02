@@ -351,48 +351,108 @@ const blogCount = blogPosts.length;
       var statusMap = {
         UP: {
           label: 'Live',
-          pillBg: '#0b1a12',
-          pillBorder: '#163724',
-          text: '#74c892',
-          dot: '#2fb15a',
+          light: {
+            pillBg: '#e9f9ef',
+            pillBorder: '#b8eac8',
+            text: '#1f7a43',
+            dot: '#22c55e',
+          },
+          dark: {
+            pillBg: '#0b1a12',
+            pillBorder: '#163724',
+            text: '#74c892',
+            dot: '#2fb15a',
+          },
         },
         HASISSUES: {
           label: 'Issues',
-          pillBg: '#2a1608',
-          pillBorder: '#7c2d12',
-          text: '#fdba74',
-          dot: '#f97316',
+          light: {
+            pillBg: '#fff2df',
+            pillBorder: '#fed7aa',
+            text: '#9a3412',
+            dot: '#f97316',
+          },
+          dark: {
+            pillBg: '#2a1608',
+            pillBorder: '#7c2d12',
+            text: '#fdba74',
+            dot: '#f97316',
+          },
         },
         UNDERMAINTENANCE: {
           label: 'Maintenance',
-          pillBg: '#0f1b38',
-          pillBorder: '#1e3a8a',
-          text: '#93c5fd',
-          dot: '#3b82f6',
+          light: {
+            pillBg: '#eaf1ff',
+            pillBorder: '#bfdbfe',
+            text: '#1e40af',
+            dot: '#3b82f6',
+          },
+          dark: {
+            pillBg: '#0f1b38',
+            pillBorder: '#1e3a8a',
+            text: '#93c5fd',
+            dot: '#3b82f6',
+          },
         },
         DOWN: {
           label: 'Outage',
-          pillBg: '#2b0d0d',
-          pillBorder: '#7f1d1d',
-          text: '#fca5a5',
-          dot: '#ef4444',
+          light: {
+            pillBg: '#feeceb',
+            pillBorder: '#fecaca',
+            text: '#b91c1c',
+            dot: '#ef4444',
+          },
+          dark: {
+            pillBg: '#2b0d0d',
+            pillBorder: '#7f1d1d',
+            text: '#fca5a5',
+            dot: '#ef4444',
+          },
         },
         UNKNOWN: {
           label: 'Unknown',
-          pillBg: '#121212',
-          pillBorder: '#303030',
-          text: '#d4d4d8',
-          dot: '#a1a1aa',
+          light: {
+            pillBg: '#f3f4f6',
+            pillBorder: '#d4d4d8',
+            text: '#52525b',
+            dot: '#71717a',
+          },
+          dark: {
+            pillBg: '#121212',
+            pillBorder: '#303030',
+            text: '#d4d4d8',
+            dot: '#a1a1aa',
+          },
         },
       };
 
-      function applyStatusVisuals(visuals) {
-        labelEl.textContent = visuals.label;
-        pillEl.style.backgroundColor = visuals.pillBg;
-        pillEl.style.borderColor = visuals.pillBorder;
-        pillEl.style.color = visuals.text;
-        dotEl.style.backgroundColor = visuals.dot;
+      var currentStatusVisuals = statusMap.UNKNOWN;
+
+      function isDarkMode() {
+        return document.documentElement.classList.contains('dark');
       }
+
+      function applyStatusVisuals(visuals) {
+        currentStatusVisuals = visuals;
+        var palette = isDarkMode() ? visuals.dark : visuals.light;
+
+        labelEl.textContent = visuals.label;
+        pillEl.style.backgroundColor = palette.pillBg;
+        pillEl.style.borderColor = palette.pillBorder;
+        pillEl.style.color = palette.text;
+        dotEl.style.backgroundColor = palette.dot;
+      }
+
+      function syncStatusVisualTheme() {
+        applyStatusVisuals(currentStatusVisuals);
+      }
+
+      new MutationObserver(function () {
+        syncStatusVisualTheme();
+      }).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
 
       fetch('https://paulsavvas.instatus.com/summary.json', { cache: 'no-store' })
         .then(function (response) {
