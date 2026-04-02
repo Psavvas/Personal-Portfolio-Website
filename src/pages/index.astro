@@ -99,10 +99,17 @@ const blogCount = blogPosts.length;
           <div class="hero-panel card" data-reveal>
             <div class="panel-head">
               <p class="status-label">STATUS</p>
-              <span class="live-pill" aria-label="Live">
-                <span class="live-dot" aria-hidden="true"></span>
-                Live
-              </span>
+              <a
+                id="ps-home-status-pill"
+                class="live-pill"
+                href="https://paulsavvas.instatus.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open site status page"
+              >
+                <span id="ps-home-status-dot" class="live-dot" aria-hidden="true"></span>
+                <span id="ps-home-status-label">Live</span>
+              </a>
             </div>
             <div class="meta-row">
               <div class="meta-block meta-block--full live-signal">
@@ -333,4 +340,75 @@ const blogCount = blogPosts.length;
       </section>
     </main>
   </div>
+
+  <script is:inline>
+    (function setupHomeStatusPill() {
+      var pillEl = document.getElementById('ps-home-status-pill');
+      var labelEl = document.getElementById('ps-home-status-label');
+      var dotEl = document.getElementById('ps-home-status-dot');
+      if (!pillEl || !labelEl || !dotEl) return;
+
+      var statusMap = {
+        UP: {
+          label: 'Live',
+          pillBg: '#0b1a12',
+          pillBorder: '#163724',
+          text: '#74c892',
+          dot: '#2fb15a',
+        },
+        HASISSUES: {
+          label: 'Issues',
+          pillBg: '#2a1608',
+          pillBorder: '#7c2d12',
+          text: '#fdba74',
+          dot: '#f97316',
+        },
+        UNDERMAINTENANCE: {
+          label: 'Maintenance',
+          pillBg: '#0f1b38',
+          pillBorder: '#1e3a8a',
+          text: '#93c5fd',
+          dot: '#3b82f6',
+        },
+        DOWN: {
+          label: 'Outage',
+          pillBg: '#2b0d0d',
+          pillBorder: '#7f1d1d',
+          text: '#fca5a5',
+          dot: '#ef4444',
+        },
+        UNKNOWN: {
+          label: 'Unknown',
+          pillBg: '#121212',
+          pillBorder: '#303030',
+          text: '#d4d4d8',
+          dot: '#a1a1aa',
+        },
+      };
+
+      function applyStatusVisuals(visuals) {
+        labelEl.textContent = visuals.label;
+        pillEl.style.backgroundColor = visuals.pillBg;
+        pillEl.style.borderColor = visuals.pillBorder;
+        pillEl.style.color = visuals.text;
+        dotEl.style.backgroundColor = visuals.dot;
+      }
+
+      fetch('https://paulsavvas.instatus.com/summary.json', { cache: 'no-store' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('Status request failed');
+          return response.json();
+        })
+        .then(function (data) {
+          var rawStatus =
+            data && data.page && data.page.status
+              ? String(data.page.status).toUpperCase()
+              : '';
+          applyStatusVisuals(statusMap[rawStatus] || statusMap.UNKNOWN);
+        })
+        .catch(function () {
+          applyStatusVisuals(statusMap.UNKNOWN);
+        });
+    })();
+  </script>
 </BaseLayout>

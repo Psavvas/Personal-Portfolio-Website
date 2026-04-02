@@ -186,28 +186,6 @@ const currentYear = new Date().getFullYear();
           >
             Built with Astro
           </a>
-          <div class="inline-flex h-[39px] w-[132px] items-center overflow-hidden" aria-label="Service status">
-          <iframe
-            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/light-sm"
-            width="160"
-            height="42"
-            frameborder="0"
-            scrolling="no"
-            class="dark:hidden"
-            style="border: none; transform: scale(0.78); transform-origin: left center;"
-            title="Service status (light mode)"
-          ></iframe>
-          <iframe
-            src="https://statuspaulsavvas.instatus.com/embed-status/5ec2166a/dark-sm"
-            width="160"
-            height="42"
-            frameborder="0"
-            scrolling="no"
-            class="hidden dark:block"
-            style="border: none; transform: scale(0.78); transform-origin: left center;"
-            title="Service status (dark mode)"
-          ></iframe>
-        </div>
         </div>
       </div>
     </footer>
@@ -272,6 +250,7 @@ const currentYear = new Date().getFullYear();
         applyMode(currentMode());
         refreshIcon();
       })();
+
     </script>
   </body>
 </html>
