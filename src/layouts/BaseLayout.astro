@@ -249,7 +249,7 @@ const currentYear = new Date().getFullYear();
 
         applyMode(currentMode());
         refreshIcon();
-        window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(() => {
           document.documentElement.classList.add('theme-transitions');
         });
       })();
