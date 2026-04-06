@@ -226,16 +226,20 @@ html.dark .site-btn--ghost {
 }
 
 /* Smooth transitions for theme changes (enabled after first paint). */
-html.theme-transitions * {
+html.theme-transitions body,
+html.theme-transitions #ps-navbar,
+html.theme-transitions #ps-navbar a,
+html.theme-transitions #ps-navbar button,
+html.theme-transitions footer,
+html.theme-transitions .site-btn,
+html.theme-transitions .hero .button,
+html.theme-transitions .hero .chip,
+html.theme-transitions .hero .signal-card,
+html.theme-transitions .hero .meta-block,
+html.theme-transitions .hero .value-arrow {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
-}
-
-html.theme-transitions body {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
