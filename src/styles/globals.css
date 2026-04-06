@@ -26,9 +26,6 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
 }
 
 img,
@@ -228,11 +225,17 @@ html.dark .site-btn--ghost {
   background: rgba(255, 255, 255, 0.02);
 }
 
-/* Smooth transitions for theme changes */
-* {
+/* Smooth transitions for theme changes (enabled after first paint). */
+html.theme-transitions * {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+html.theme-transitions body {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -257,7 +260,7 @@ html.dark .site-btn--ghost {
     transition: none !important;
   }
 
-  * {
+  html.theme-transitions * {
     transition: none !important;
   }
 }
