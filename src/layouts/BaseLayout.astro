@@ -249,6 +249,9 @@ const currentYear = new Date().getFullYear();
 
         applyMode(currentMode());
         refreshIcon();
+        window.requestAnimationFrame(() => {
+          document.documentElement.classList.add('theme-transitions');
+        });
       })();
 
     </script>
