@@ -10,6 +10,7 @@ export const shortlinks: Record<string, string> = {
   savvas3dprinting: 'https://psavvas.notion.site/savvas-3d-printing',
   notion: 'https://www.notion.com/@paulsavvas',
   resume: 'https://1drv.ms/b/c/ee91ca8e4e8d70e0/IQBnww0L4qKBT7mxoaeF_nfsAZHoybYILbyiG_T95FYR-O8?e=kGCRPN',
+  seahorse: 'https://www.linkedin.com/in/pauldsavvas/overlay/Project/1615531302/treasury/?profileId=ACoAAFuX5H8BA9BiwBT6Pg-2llQGlThks8H-FB4',
 };
 
 // Project catalogue used by the projects listing page.
@@ -25,6 +26,15 @@ export interface CatalogueEntry {
 }
 
 export const catalogue: CatalogueEntry[] = [
+  {
+    title: 'AWQ-1 Seahorse',
+    summary:
+      'A first-place project for the PAX River Naval Airbase "Navy\'s Next Jet Competition." The AWQ-1 was an imagined aircraft with a revolutionary concept: using wide a range of drones launched from the aircraft to keep the pilot and crew out harm\'s way.',
+    tags: ['Aerospace', 'Concept Design', 'Engineering'],
+    year: ['2026'],
+    featured: false,
+    link: { label: 'View', href: '/redirect/seahorse' },
+  },
   {
     title: 'InfantGuard',
     summary:
