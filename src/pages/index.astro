@@ -1,37 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
-import { catalogue } from '../data/site';
+import {
+  getLatestProject,
+  getProjectDestination,
+  getPublishedProjects,
+} from '../lib/notion-projects';
+import { getPublishedBlogPosts } from '../lib/notion-blog';
 
-const projects = await getCollection('projects');
-const blogPosts = await getCollection('blog');
+const projects = await getPublishedProjects();
+const blogPosts = await getPublishedBlogPosts();
 
-function slugFromId(id: string) {
-  return id.replace(/\.mdx?$/, '');
-}
-
-function getProjectYear(project: (typeof projects)[number]): number {
-  const year = project.data.year;
-  if (!year) return 0;
-  if (Array.isArray(year)) {
-    return year
-      .map((value) => Number(value))
-      .filter((value) => !Number.isNaN(value))
-      .reduce((max, value) => Math.max(max, value), 0);
-  }
-  const parsed = Number(year);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-const latestProject = projects
-  .slice()
-  .sort((a, b) => getProjectYear(b) - getProjectYear(a))[0];
-const latestPost = blogPosts
-  .slice()
-  .sort(
-    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
-  )[0];
-const projectCount = catalogue.length;
+const latestProject = getLatestProject(projects);
+const latestPost = blogPosts[0];
+const projectCount = projects.length;
 const blogCount = blogPosts.length;
 ---
 
@@ -133,27 +114,40 @@ const blogCount = blogPosts.length;
                 </p>
                 {
                   latestProject ? (
-                    <a
-                      class="value value-link"
-                      href={`/projects/${slugFromId(latestProject.id)}`}
-                    >
-                      <span class="value-text">{latestProject.data.title}</span>
-                      <svg
-                        class="value-arrow"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          d="M5 12h12m0 0-4-4m4 4-4 4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                        />
-                      </svg>
-                    </a>
+                    (() => {
+                      const destination = getProjectDestination(latestProject);
+
+                      if (!destination) {
+                        return <p class="value">{latestProject.title}</p>;
+                      }
+
+                      return (
+                        <a
+                          class="value value-link"
+                          href={destination.url}
+                          {...(destination.external
+                            ? { target: '_blank', rel: 'noopener noreferrer' }
+                            : {})}
+                        >
+                          <span class="value-text">{latestProject.title}</span>
+                          <svg
+                            class="value-arrow"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path
+                              d="M5 12h12m0 0-4-4m4 4-4 4"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                            />
+                          </svg>
+                        </a>
+                      );
+                    })()
                   ) : (
                     <p class="value">New project coming soon</p>
                   )
@@ -184,9 +178,9 @@ const blogCount = blogPosts.length;
                   latestPost ? (
                     <a
                       class="value value-link"
-                      href={`/blog/${slugFromId(latestPost.id)}`}
+                      href={`/blog/${latestPost.slug}`}
                     >
-                      <span class="value-text">{latestPost.data.title}</span>
+                      <span class="value-text">{latestPost.title}</span>
                       <svg
                         class="value-arrow"
                         viewBox="0 0 24 24"

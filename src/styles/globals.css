@@ -143,6 +143,45 @@ canvas {
   animation: fadeInDown 0.5s ease-out 0.3s forwards;
 }
 
+/* Prose headings with semibold weight */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply font-semibold;
+}
+
+.prose h1 strong,
+.prose h2 strong,
+.prose h3 strong,
+.prose h4 strong,
+.prose h5 strong,
+.prose h6 strong {
+  @apply font-semibold;
+}
+
+/* Inline code styling */
+.prose code {
+  @apply rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-sm text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100;
+  @apply before:content-none after:content-none;
+}
+
+/* Code block styling */
+.prose pre {
+  @apply overflow-hidden;
+}
+
+.prose pre code {
+  @apply bg-transparent px-0 py-0 text-sm font-normal text-white;
+}
+
+.prose pre::selection,
+.prose pre code::selection {
+  @apply bg-neutral-700 text-neutral-100 dark:bg-neutral-300 dark:text-neutral-900;
+}
+
 /* Delay utilities for staggered animations */
 .animation-delay-100 {
   animation-delay: 100ms;
@@ -210,6 +249,17 @@ canvas {
   background: transparent;
 }
 
+.site-btn--project-primary {
+  background: #171717;
+  border-color: #171717;
+  color: #ffffff;
+}
+
+.site-btn--project-primary:hover,
+.site-btn--project-primary:focus-visible {
+  background: #262626;
+}
+
 html.dark .site-btn {
   border-color: #262626;
   background: #0a0a0a;
@@ -223,6 +273,17 @@ html.dark .site-btn:focus-visible {
 
 html.dark .site-btn--ghost {
   background: rgba(255, 255, 255, 0.02);
+}
+
+html.dark .site-btn--project-primary {
+  background: #f5f5f5;
+  border-color: #f5f5f5;
+  color: #171717;
+}
+
+html.dark .site-btn--project-primary:hover,
+html.dark .site-btn--project-primary:focus-visible {
+  background: #e5e5e5;
 }
 
 /* Smooth transitions for theme changes (enabled after first paint). */
