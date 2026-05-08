@@ -1,6 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { catalogue, type CatalogueEntry } from '../../data/site';
+import {
+  formatProjectYear,
+  getProjectDestination,
+  getPublishedProjects,
+} from '../../lib/notion-projects';
 
 const pageTitle = 'Projects | Paul Savvas';
 const pageDesc =
@@ -8,39 +12,8 @@ const pageDesc =
 
 const ghProfileUrl = 'https://github.com/psavvas';
 const tvProfileUrl = 'https://www.thingiverse.com/psavvas';
-
-/* ── Helper: build a "learn more" destination for a catalogue entry ── */
-function resolveDestination(
-  item: CatalogueEntry
-): { url: string; external: boolean } | null {
-  if (item.projectPage) {
-    return { url: `/projects/${item.projectPage}`, external: false };
-  }
-  if (item.link) {
-    return { url: item.link.href, external: true };
-  }
-  if (item.repo) {
-    const r = item.repo.trim();
-    const repoUrl = r.startsWith('http')
-      ? r
-      : `https://github.com/${r.replace(/^\//, '')}`;
-    return { url: repoUrl, external: true };
-  }
-  return null;
-}
-
-/* ── Helper: format year array into a display label ── */
-function formatYear(years?: string[]): string | undefined {
-  if (!years || years.length === 0) return undefined;
-  const nums = years
-    .map((y) => Number(y.trim()))
-    .filter((n) => !Number.isNaN(n));
-  if (nums.length === 0) return undefined;
-  if (nums.length === 1) return String(nums[0]);
-  return `${Math.min(...nums)}–${Math.max(...nums)}`;
-}
-
-const featuredItems = catalogue.filter((p) => p.featured !== false);
+const projects = await getPublishedProjects();
+const featuredItems = projects.filter((project) => project.featured);
 
 const cardCls =
   'rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950 hover-lift animate-fade-in-up';
@@ -116,8 +89,8 @@ const actionCls =
         <div class="mt-8 grid gap-6 md:grid-cols-2">
           {
             featuredItems.map((proj) => {
-              const dest = resolveDestination(proj);
-              const yr = formatYear(proj.year);
+              const dest = getProjectDestination(proj);
+              const yr = formatProjectYear(proj.year);
               return (
                 <article class={cardCls}>
                   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -201,9 +174,9 @@ const actionCls =
           class="mt-6 rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 divide-y divide-neutral-200 dark:divide-neutral-800"
         >
           {
-            catalogue.map((proj) => {
-              const dest = resolveDestination(proj);
-              const yr = formatYear(proj.year);
+            projects.map((proj) => {
+              const dest = getProjectDestination(proj);
+              const yr = formatProjectYear(proj.year);
               const smallTagCls =
                 'inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300';
               return (

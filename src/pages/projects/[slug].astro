@@ -1,38 +1,44 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, render } from 'astro:content';
-import MdxImage from '../../components/MdxImage.astro';
+import {
+  formatProjectYear,
+  getProjectBySlug,
+  getPublishedProjectPages,
+} from '../../lib/notion-projects';
+import { getPublishedBlogPosts } from '../../lib/notion-blog';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('projects');
-  return entries.map((e) => ({
-    params: { slug: e.id.replace(/\.mdx?$/, '') },
-    props: { entry: e },
+  const entries = await getPublishedProjectPages();
+  return entries.map((entry) => ({
+    params: { slug: entry.slug as string },
   }));
 }
 
-const { entry } = Astro.props;
-const { Content } = await render(entry);
+const slug = Astro.params.slug;
+const entry = slug ? await getProjectBySlug(slug) : undefined;
 
-/* Format year(s) into a display label */
-function formatYear(raw?: string | string[]): string | undefined {
-  const arr = Array.isArray(raw) ? raw : raw ? [raw] : [];
-  const nums = arr
-    .map((v) => Number(String(v).trim()))
-    .filter((n) => !Number.isNaN(n));
-  if (nums.length === 0) return undefined;
-  if (nums.length === 1) return String(nums[0]);
-  return `${Math.min(...nums)}–${Math.max(...nums)}`;
+if (!entry) {
+  throw new Error(`Project not found for slug: ${slug}`);
 }
 
-const yr = formatYear(entry.data.year);
+const blogPosts = await getPublishedBlogPosts();
+
+let featuredPost: { title: string; slug: string } | undefined;
+if (entry.featuredBlog) {
+  const match = blogPosts.find((p) => p.slug === entry.featuredBlog);
+  if (match) {
+    featuredPost = { title: match.title, slug: match.slug };
+  }
+}
+
+const yr = formatProjectYear(entry.year);
 const tagCls =
   'inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300';
 ---
 
 <BaseLayout
-  title={`${entry.data.title} | Paul Savvas`}
-  description={entry.data.summary}
+  title={`${entry.title} | Paul Savvas`}
+  description={entry.summary}
 >
   <div
     class="min-h-screen bg-white font-sans dark:bg-neutral-950 transition-colors"
@@ -57,18 +63,18 @@ const tagCls =
           <h1
             class="mt-3 text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-5xl"
           >
-            {entry.data.title}
+            {entry.title}
           </h1>
           <p
             class="mt-6 text-base leading-7 text-neutral-700 dark:text-neutral-300"
           >
-            {entry.data.summary}
+            {entry.summary}
           </p>
 
           {
-            entry.data.tags && entry.data.tags.length > 0 && (
+            entry.tags && entry.tags.length > 0 && (
               <div class="mt-6 flex flex-wrap gap-2">
-                {entry.data.tags.map((t: string) => (
+                {entry.tags.map((t: string) => (
                   <span class={tagCls}>{t}</span>
                 ))}
               </div>
@@ -76,30 +82,13 @@ const tagCls =
           }
 
           {
-            entry.data.links && entry.data.links.length > 0 && (
-              <div class="mt-8 flex flex-wrap gap-3">
-                {entry.data.links.map(
-                  (lnk: { label: string; href: string; primary?: boolean }) => (
-                    <a
-                      class={`inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition-colors hover-lift ${
-                        lnk.primary
-                          ? 'border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-800 dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200'
-                          : 'border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:hover:bg-neutral-900'
-                      }`}
-                      href={lnk.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {lnk.label}
-                    </a>
-                  )
-                )}
-              </div>
+            entry.topLinksHtml && (
+              <div set:html={entry.topLinksHtml} />
             )
           }
 
           {
-            entry.data.featuredPost && (
+            featuredPost && (
               <aside class="mt-10 rounded-xl border border-neutral-200 bg-neutral-50/80 p-6 dark:border-neutral-800 dark:bg-neutral-900/60">
                 <div class="flex items-center gap-4">
                   <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-neutral-200/80 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
@@ -120,10 +109,10 @@ const tagCls =
                       Featured Blog Post
                     </p>
                     <a
-                      href={`/blog/${entry.data.featuredPost.slug}`}
+                      href={`/blog/${featuredPost.slug}`}
                       class="mt-1 inline-flex items-center gap-2 text-sm font-medium tracking-tight text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-neutral-300"
                     >
-                      <span class="truncate">{entry.data.featuredPost.title}</span>
+                      <span class="truncate">{featuredPost.title}</span>
                       <span aria-hidden="true">→</span>
                     </a>
                   </div>
@@ -134,9 +123,9 @@ const tagCls =
         </header>
 
         <article
-          class="mt-12 space-y-8 animate-fade-in-up prose prose-neutral dark:prose-invert max-w-none"
+          class="mt-10 space-y-5 animate-fade-in-up prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight"
+          set:html={entry.bodyHtml ?? ''}
         >
-          <Content components={{ img: MdxImage }} />
         </article>
       </div>
     </main>
