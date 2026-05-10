@@ -92,10 +92,90 @@ const currentYear = new Date().getFullYear();
           </a>
         </div>
 
+        {/* Mobile controls */}
+        <div class="flex items-center justify-end gap-1 md:hidden">
+          <div id="ps-navbar-theme" class="inline-flex h-10 items-center">
+            <button
+              data-theme-toggle
+              type="button"
+              aria-label="Toggle colour theme"
+              class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
+            >
+              <svg
+                class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <!-- Sun icon (light mode) -->
+                <path
+                  data-theme-icon="light"
+                  class="hidden"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                ></path>
+                <!-- Moon icon (dark mode) -->
+                <path
+                  data-theme-icon="dark"
+                  class="hidden"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                ></path>
+                <!-- Computer icon (system mode) -->
+                <path
+                  data-theme-icon="system"
+                  class="hidden"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <button
+            id="ps-mobile-menu-btn"
+            type="button"
+            aria-label="Open navigation menu"
+            aria-controls="ps-mobile-menu"
+            aria-expanded="false"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <svg
+              class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                data-menu-icon="open"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+              <path
+                data-menu-icon="close"
+                class="hidden"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 6l12 12M18 6 6 18"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
         {/* Navigation links */}
         <div
           id="ps-navbar-links"
-          class="col-span-2 md:col-span-1 md:col-start-2 flex items-center justify-center md:justify-center"
+          class="hidden md:col-span-1 md:col-start-2 md:flex items-center justify-center md:justify-center"
         >
           <ul class="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 md:w-auto md:flex-nowrap md:gap-6">
             {
@@ -114,19 +194,18 @@ const currentYear = new Date().getFullYear();
         </div>
 
         {/* Theme toggle */}
-        <div class="row-start-1 col-start-2 flex items-center justify-end md:row-auto md:col-start-3">
+        <div class="hidden md:row-start-1 md:col-start-3 md:flex items-center justify-end md:row-auto md:col-start-3">
           <div
             id="ps-navbar-theme"
             class="inline-flex h-10 md:h-8 items-center"
           >
             <button
-              id="ps-theme-btn"
+              data-theme-toggle
               type="button"
               aria-label="Toggle colour theme"
               class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
             >
               <svg
-                id="ps-theme-icon"
                 class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
                 fill="none"
                 stroke="currentColor"
@@ -134,7 +213,7 @@ const currentYear = new Date().getFullYear();
               >
                 <!-- Sun icon (light mode) -->
                 <path
-                  id="icon-light"
+                  data-theme-icon="light"
                   class="hidden"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -143,7 +222,7 @@ const currentYear = new Date().getFullYear();
                 ></path>
                 <!-- Moon icon (dark mode) -->
                 <path
-                  id="icon-dark"
+                  data-theme-icon="dark"
                   class="hidden"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -152,7 +231,7 @@ const currentYear = new Date().getFullYear();
                 ></path>
                 <!-- Computer icon (system mode) -->
                 <path
-                  id="icon-system"
+                  data-theme-icon="system"
                   class="hidden"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -164,6 +243,29 @@ const currentYear = new Date().getFullYear();
           </div>
         </div>
       </nav>
+
+      <div
+        id="ps-mobile-menu"
+        class="max-h-0 overflow-hidden border-t border-neutral-200 bg-white px-4 transition-all duration-300 ease-out dark:border-neutral-800 dark:bg-neutral-950 md:hidden"
+        aria-hidden="true"
+      >
+        <div class="mx-auto flex max-w-6xl flex-col gap-4 py-4">
+          <ul class="flex flex-col gap-1">
+            {
+              navEntries.map((entry) => (
+                <li>
+                  <a
+                    href={entry.path}
+                    class="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+                  >
+                    {entry.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
     </header>
 
     {/* ── Page content ── */}
@@ -210,27 +312,22 @@ const currentYear = new Date().getFullYear();
 
         function refreshIcon() {
           var mode = currentMode();
-          // Hide all icons
-          var iconLight = document.getElementById('icon-light');
-          var iconDark = document.getElementById('icon-dark');
-          var iconSystem = document.getElementById('icon-system');
+          var icons = document.querySelectorAll('[data-theme-icon]');
 
-          if (iconLight) iconLight.classList.add('hidden');
-          if (iconDark) iconDark.classList.add('hidden');
-          if (iconSystem) iconSystem.classList.add('hidden');
+          icons.forEach(function (icon) {
+            icon.classList.add('hidden');
+          });
 
-          // Show the appropriate icon
-          if (mode === 'light' && iconLight) {
-            iconLight.classList.remove('hidden');
-          } else if (mode === 'dark' && iconDark) {
-            iconDark.classList.remove('hidden');
-          } else if (iconSystem) {
-            iconSystem.classList.remove('hidden');
-          }
+          var activeIcons = document.querySelectorAll(
+            '[data-theme-icon="' + mode + '"]'
+          );
+          activeIcons.forEach(function (icon) {
+            icon.classList.remove('hidden');
+          });
         }
 
-        var btn = document.getElementById('ps-theme-btn');
-        if (btn) {
+        var themeButtons = document.querySelectorAll('[data-theme-toggle]');
+        themeButtons.forEach(function (btn) {
           btn.addEventListener('click', function () {
             var idx = modes.indexOf(currentMode());
             var next = modes[(idx + 1) % modes.length];
@@ -238,7 +335,7 @@ const currentYear = new Date().getFullYear();
             applyMode(next);
             refreshIcon();
           });
-        }
+        });
 
         // React to OS-level changes when mode is "system"
         window
@@ -251,6 +348,61 @@ const currentYear = new Date().getFullYear();
         refreshIcon();
         window.requestAnimationFrame(() => {
           document.documentElement.classList.add('theme-transitions');
+        });
+      })();
+
+      (function setupMobileMenu() {
+        var menuButton = document.getElementById('ps-mobile-menu-btn');
+        var menuPanel = document.getElementById('ps-mobile-menu');
+
+        if (!menuButton || !menuPanel) {
+          return;
+        }
+
+        var openIcon = menuButton.querySelector('[data-menu-icon="open"]');
+        var closeIcon = menuButton.querySelector('[data-menu-icon="close"]');
+        var menuLinks = menuPanel.querySelectorAll('a');
+
+        function setMenuOpen(isOpen) {
+          menuButton.setAttribute('aria-expanded', String(isOpen));
+          menuButton.setAttribute(
+            'aria-label',
+            isOpen ? 'Close navigation menu' : 'Open navigation menu'
+          );
+          menuPanel.setAttribute('aria-hidden', String(!isOpen));
+          menuPanel.classList.toggle('max-h-0', !isOpen);
+          menuPanel.classList.toggle('opacity-0', !isOpen);
+          menuPanel.classList.toggle('pointer-events-none', !isOpen);
+          menuPanel.classList.toggle('max-h-96', isOpen);
+          menuPanel.classList.toggle('opacity-100', isOpen);
+          menuPanel.classList.toggle('pointer-events-auto', isOpen);
+
+          if (openIcon) {
+            openIcon.classList.toggle('hidden', isOpen);
+          }
+
+          if (closeIcon) {
+            closeIcon.classList.toggle('hidden', !isOpen);
+          }
+        }
+
+        setMenuOpen(false);
+
+        menuButton.addEventListener('click', function () {
+          var isOpen = menuButton.getAttribute('aria-expanded') === 'true';
+          setMenuOpen(!isOpen);
+        });
+
+        menuLinks.forEach(function (link) {
+          link.addEventListener('click', function () {
+            setMenuOpen(false);
+          });
+        });
+
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') {
+            setMenuOpen(false);
+          }
         });
       })();
 
