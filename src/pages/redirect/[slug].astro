@@ -86,6 +86,13 @@ const linkType = isInternal ? 'internal page' : 'external site';
     const REDIRECT_DELAY_MS = 1500;
 
     // Destination is controlled server-side via Notion database
-    }, REDIRECT_DELAY_MS);
+    const scriptElement = document.currentScript;
+    const redirectTo = scriptElement?.dataset.destination;
+
+    if (redirectTo) {
+      window.setTimeout(() => {
+        window.location.replace(redirectTo);
+      }, REDIRECT_DELAY_MS);
+    }
   </script>
 </BaseLayout>
