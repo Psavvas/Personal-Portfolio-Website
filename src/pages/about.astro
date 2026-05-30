@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getNowSectionHtml } from '../lib/notion-now';
 
 const pageTitle = 'About | Paul Savvas';
 const pageDesc =
@@ -36,6 +37,17 @@ const domains = [
   'Hardware: practical builds where constraints (power, sensors, materials) shape the solution.',
   '3D design: parts and prototypes that are tested, adjusted, and refined in real conditions.',
 ];
+
+const fallbackNowHtml = `
+  <p>
+    Right now, I'm focused on building a platform that redefines how independent learners connect, collaborate, and teach one another. I can't share too many details yet, but the goal is to make peer learning more accessible and effective. I'll share more as the project is finalized, and I hope to announce it publicly by August 2026.
+  </p>
+  <p>
+    If you want to see what I'm working on, the best place to start is my GitHub or Thingiverse.
+  </p>
+`;
+
+const nowHtml = await getNowSectionHtml();
 ---
 
 <BaseLayout title={pageTitle} description={pageDesc}>
@@ -135,20 +147,8 @@ const domains = [
         </h2>
         <div
           class="mt-4 space-y-4 text-base leading-7 text-neutral-700 dark:text-neutral-300"
-        >
-          <p>
-            Right now, I'm focused on building a platform that redefines how
-            independent learners connect, collaborate, and teach one another.
-            I can't share too many details yet, but the goal is to make peer
-            learning more accessible and effective. I'll share more as the
-            project is finalized, and I hope to announce it publicly by August
-            2026.
-          </p>
-          <p>
-            If you want to see what I'm working on, the best place to start is
-            my GitHub or Thingiverse.
-          </p>
-        </div>
+          set:html={nowHtml || fallbackNowHtml}
+        />
         <div class="mt-8 flex flex-wrap gap-4">
           <a
             class={btnClasses}
