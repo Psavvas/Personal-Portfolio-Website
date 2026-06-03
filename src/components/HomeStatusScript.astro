@@ -1,0 +1,137 @@
+<script is:inline>
+  (function setupHomeStatusPill() {
+    var pillEl = document.getElementById('ps-home-status-pill');
+    var labelEl = document.getElementById('ps-home-status-label');
+    var dotEl = document.getElementById('ps-home-status-dot');
+    if (!pillEl || !labelEl || !dotEl) return;
+
+    var statusMap = {
+      UP: {
+        label: 'Live',
+        light: {
+          pillBg: '#ecfdf5',
+          pillBorder: '#bbf7d0',
+          text: '#166534',
+          dot: '#22c55e',
+          glow: 'rgba(34, 197, 94, 0.32)',
+        },
+        dark: {
+          pillBg: '#052e16',
+          pillBorder: '#166534',
+          text: '#86efac',
+          dot: '#22c55e',
+          glow: 'rgba(34, 197, 94, 0.32)',
+        },
+      },
+      HASISSUES: {
+        label: 'Issues',
+        light: {
+          pillBg: '#fff7ed',
+          pillBorder: '#fed7aa',
+          text: '#9a3412',
+          dot: '#f97316',
+          glow: 'rgba(249, 115, 22, 0.32)',
+        },
+        dark: {
+          pillBg: '#431407',
+          pillBorder: '#9a3412',
+          text: '#fdba74',
+          dot: '#f97316',
+          glow: 'rgba(249, 115, 22, 0.32)',
+        },
+      },
+      UNDERMAINTENANCE: {
+        label: 'Maintenance',
+        light: {
+          pillBg: '#eff6ff',
+          pillBorder: '#bfdbfe',
+          text: '#1d4ed8',
+          dot: '#3b82f6',
+          glow: 'rgba(59, 130, 246, 0.32)',
+        },
+        dark: {
+          pillBg: '#172554',
+          pillBorder: '#1d4ed8',
+          text: '#93c5fd',
+          dot: '#3b82f6',
+          glow: 'rgba(59, 130, 246, 0.32)',
+        },
+      },
+      DOWN: {
+        label: 'Outage',
+        light: {
+          pillBg: '#fef2f2',
+          pillBorder: '#fecaca',
+          text: '#b91c1c',
+          dot: '#ef4444',
+          glow: 'rgba(239, 68, 68, 0.32)',
+        },
+        dark: {
+          pillBg: '#450a0a',
+          pillBorder: '#991b1b',
+          text: '#fca5a5',
+          dot: '#ef4444',
+          glow: 'rgba(239, 68, 68, 0.32)',
+        },
+      },
+      UNKNOWN: {
+        label: 'Unknown',
+        light: {
+          pillBg: '#f4f4f5',
+          pillBorder: '#d4d4d8',
+          text: '#52525b',
+          dot: '#71717a',
+          glow: 'rgba(113, 113, 122, 0.32)',
+        },
+        dark: {
+          pillBg: '#18181b',
+          pillBorder: '#3f3f46',
+          text: '#d4d4d8',
+          dot: '#a1a1aa',
+          glow: 'rgba(161, 161, 170, 0.32)',
+        },
+      },
+    };
+
+    var currentStatusVisuals = statusMap.UNKNOWN;
+
+    function isDarkMode() {
+      return document.documentElement.classList.contains('dark');
+    }
+
+    function applyStatusVisuals(visuals) {
+      currentStatusVisuals = visuals;
+      var palette = isDarkMode() ? visuals.dark : visuals.light;
+
+      labelEl.textContent = visuals.label;
+      pillEl.style.backgroundColor = palette.pillBg;
+      pillEl.style.borderColor = palette.pillBorder;
+      pillEl.style.color = palette.text;
+      dotEl.style.backgroundColor = palette.dot;
+      dotEl.style.setProperty('--hero-live-dot-glow', palette.glow);
+    }
+
+    new MutationObserver(function () {
+      applyStatusVisuals(currentStatusVisuals);
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    fetch('https://paulsavvas.instatus.com/summary.json', { cache: 'no-store' })
+      .then(function (response) {
+        if (!response.ok) throw new Error('Status request failed');
+        return response.json();
+      })
+      .then(function (data) {
+        var rawStatus =
+          data && data.page && data.page.status
+            ? String(data.page.status).toUpperCase()
+            : '';
+        applyStatusVisuals(statusMap[rawStatus] || statusMap.UNKNOWN);
+      })
+      .catch(function () {
+        applyStatusVisuals(statusMap.UNKNOWN);
+      });
+  })();
+</script>

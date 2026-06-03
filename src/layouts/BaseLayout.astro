@@ -26,6 +26,7 @@ const navEntries = [
 ];
 
 const currentYear = new Date().getFullYear();
+const currentPath = Astro.url.pathname;
 ---
 
 <html lang="en">
@@ -35,14 +36,12 @@ const currentYear = new Date().getFullYear();
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
 
-    <!-- OpenGraph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={siteUrl} />
     <meta property="og:site_name" content="Paul Savvas" />
 
-    <!-- Twitter card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
@@ -51,7 +50,6 @@ const currentYear = new Date().getFullYear();
 
     <Analytics />
 
-    {/* Inline theme initialisation — runs before paint to avoid flash */}
     <script is:inline>
       (function applyStoredTheme() {
         var stored = localStorage.getItem('ps-theme');
@@ -62,7 +60,6 @@ const currentYear = new Date().getFullYear();
         document.documentElement.classList.toggle('dark', useDark);
       })();
 
-      // Navbar entrance animation — only on first site load in this session
       (function navbarEntrance() {
         if (!sessionStorage.getItem('ps-visited')) {
           document.documentElement.classList.add('navbar-animate');
@@ -72,232 +69,191 @@ const currentYear = new Date().getFullYear();
     </script>
   </head>
 
-  <body>
-    {/* ── Navbar ── */}
+  <body
+    class="min-h-screen bg-stone-50 text-neutral-950 antialiased dark:bg-neutral-950 dark:text-neutral-50"
+  >
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <div
+        class="absolute left-1/2 top-[-18rem] h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.14),rgba(14,165,233,0.06)_42%,transparent_70%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(96,165,250,0.18),rgba(20,184,166,0.08)_42%,transparent_70%)]"
+      >
+      </div>
+    </div>
+
     <header
       id="ps-navbar"
-      class="sticky top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur transition-colors"
+      class="sticky top-0 z-50 border-b border-black/5 bg-stone-50/85 shadow-sm shadow-black/[0.02] backdrop-blur-xl transition-colors dark:border-white/10 dark:bg-neutral-950/80"
     >
       <nav
-        class="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 md:grid-cols-3 md:gap-y-0 md:py-0 md:h-14"
+        class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8"
+        aria-label="Primary navigation"
       >
-        {/* Brand */}
-        <div class="flex items-center">
-          <a
-            href="/"
-            id="ps-navbar-brand"
-            class="inline-flex h-10 md:h-8 items-center text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 transition-colors shrink-0 leading-none"
+        <a
+          id="ps-navbar-brand"
+          href="/"
+          class="group inline-flex items-center gap-3 rounded-full pr-2 text-sm font-semibold tracking-tight text-neutral-950 transition dark:text-white"
+        >
+          <span
+            class="grid h-10 w-10 place-items-center rounded-2xl bg-neutral-950 text-sm font-bold text-white shadow-lg shadow-neutral-950/10 transition group-hover:-rotate-3 group-hover:scale-105 dark:bg-white dark:text-neutral-950"
+            >PS</span
           >
-            PS
-          </a>
-        </div>
+          <span class="hidden sm:block">Paul Savvas</span>
+        </a>
 
-        {/* Mobile controls */}
-        <div class="flex items-center justify-end gap-1 md:hidden">
-          <div id="ps-navbar-theme" class="inline-flex h-10 items-center">
-            <button
-              data-theme-toggle
-              type="button"
-              aria-label="Toggle colour theme"
-              class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
-            >
-              <svg
-                class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <!-- Sun icon (light mode) -->
-                <path
-                  data-theme-icon="light"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                ></path>
-                <!-- Moon icon (dark mode) -->
-                <path
-                  data-theme-icon="dark"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                ></path>
-                <!-- Computer icon (system mode) -->
-                <path
-                  data-theme-icon="system"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                ></path>
-              </svg>
-            </button>
-          </div>
-
-          <button
-            id="ps-mobile-menu-btn"
-            type="button"
-            aria-label="Open navigation menu"
-            aria-controls="ps-mobile-menu"
-            aria-expanded="false"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          >
-            <svg
-              class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                data-menu-icon="open"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              ></path>
-              <path
-                data-menu-icon="close"
-                class="hidden"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 6l12 12M18 6 6 18"
-              ></path>
-            </svg>
-          </button>
-        </div>
-
-        {/* Navigation links */}
         <div
           id="ps-navbar-links"
-          class="hidden md:col-span-1 md:col-start-2 md:flex items-center justify-center md:justify-center"
+          class="hidden items-center gap-1 rounded-full border border-black/5 bg-white/70 p-1 shadow-sm shadow-black/[0.03] dark:border-white/10 dark:bg-white/5 md:flex"
         >
-          <ul class="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 md:w-auto md:flex-nowrap md:gap-6">
-            {
-              navEntries.map((entry) => (
-                <li class="flex">
-                  <a
-                    href={entry.path}
-                    class="inline-flex h-10 md:h-8 items-center text-sm font-medium text-neutral-600 dark:text-neutral-400 transition-colors hover:text-neutral-900 dark:hover:text-neutral-100 leading-none"
-                  >
-                    {entry.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
+          {
+            navEntries.map((entry) => {
+              const isActive =
+                entry.path === '/'
+                  ? currentPath === '/'
+                  : currentPath.startsWith(entry.path);
+              return (
+                <a
+                  href={entry.path}
+                  aria-current={isActive ? 'page' : undefined}
+                  class:list={[
+                    'rounded-full px-4 py-2 text-sm font-medium transition',
+                    isActive
+                      ? 'bg-neutral-950 text-white shadow-sm dark:bg-white dark:text-neutral-950'
+                      : 'text-neutral-600 hover:bg-neutral-950/5 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-white/10 dark:hover:text-white',
+                  ]}
+                >
+                  {entry.label}
+                </a>
+              );
+            })
+          }
         </div>
 
-        {/* Theme toggle */}
-        <div class="hidden md:row-start-1 md:col-start-3 md:flex items-center justify-end md:row-auto md:col-start-3">
-          <div
-            id="ps-navbar-theme"
-            class="inline-flex h-10 md:h-8 items-center"
-          >
+        <div class="flex items-center gap-2">
+          <div id="ps-navbar-theme" class="inline-flex items-center">
             <button
               data-theme-toggle
               type="button"
               aria-label="Toggle colour theme"
-              class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
+              class="grid h-10 w-10 place-items-center rounded-full border border-black/5 bg-white/80 text-neutral-700 shadow-sm shadow-black/[0.03] transition hover:-translate-y-0.5 hover:text-neutral-950 dark:border-white/10 dark:bg-white/5 dark:text-neutral-300 dark:hover:text-white"
             >
               <svg
-                class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
+                class="h-5 w-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                <!-- Sun icon (light mode) -->
                 <path
                   data-theme-icon="light"
                   class="hidden"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"
                 ></path>
-                <!-- Moon icon (dark mode) -->
                 <path
                   data-theme-icon="dark"
                   class="hidden"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"
                 ></path>
-                <!-- Computer icon (system mode) -->
                 <path
                   data-theme-icon="system"
                   class="hidden"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  d="M9.75 17 9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"
                 ></path>
               </svg>
             </button>
           </div>
+          <a
+            href="/contact"
+            class="hidden rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-500 sm:inline-flex"
+            >Let's connect</a
+          >
         </div>
       </nav>
 
       <div
-        id="ps-mobile-menu"
-        class="max-h-0 overflow-hidden border-t border-neutral-200 bg-white px-4 transition-all duration-300 ease-out dark:border-neutral-800 dark:bg-neutral-950 md:hidden"
-        aria-hidden="true"
+        class="border-t border-black/5 bg-white/70 px-4 py-2 dark:border-white/10 dark:bg-neutral-950/70 md:hidden"
       >
-        <div class="mx-auto flex max-w-6xl flex-col gap-4 py-4">
-          <ul class="flex flex-col gap-1">
-            {
-              navEntries.map((entry) => (
-                <li>
-                  <a
-                    href={entry.path}
-                    class="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
-                  >
-                    {entry.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
+        <div class="mx-auto flex max-w-7xl gap-2 overflow-x-auto">
+          {
+            navEntries.map((entry) => {
+              const isActive =
+                entry.path === '/'
+                  ? currentPath === '/'
+                  : currentPath.startsWith(entry.path);
+              return (
+                <a
+                  href={entry.path}
+                  aria-current={isActive ? 'page' : undefined}
+                  class:list={[
+                    'shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition',
+                    isActive
+                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                      : 'text-neutral-600 hover:bg-neutral-950/5 dark:text-neutral-300 dark:hover:bg-white/10',
+                  ]}
+                >
+                  {entry.label}
+                </a>
+              );
+            })
+          }
         </div>
       </div>
     </header>
 
-    {/* ── Page content ── */}
     <slot />
 
-    {/* ── Footer ── */}
     <footer
-      class="w-full border-t border-gray-200 dark:border-neutral-800 transition-colors"
+      class="border-t border-black/5 bg-white/55 px-5 py-10 text-sm text-neutral-600 backdrop-blur dark:border-white/10 dark:bg-white/[0.02] dark:text-neutral-400 sm:px-8"
     >
       <div
-        class="mx-auto max-w-7xl px-6 py-6 flex w-full items-center justify-between gap-3 text-sm text-gray-500 dark:text-neutral-400"
+        class="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between"
       >
-        <span>&copy; {currentYear} Paul Savvas. All rights reserved.</span>
-        <div class="flex items-center gap-3">
+        <div>
+          <p class="font-semibold text-neutral-950 dark:text-white">
+            Paul Savvas
+          </p>
+          <p class="mt-1">
+            Software, hardware, and 3D design built with intention.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
           <a
-            href="https://astro.build"
-            class="hover:underline"
+            href="https://github.com/psavvas"
             target="_blank"
             rel="noopener noreferrer"
+            class="hover:text-neutral-950 dark:hover:text-white">GitHub</a
           >
-            Built with Astro
-          </a>
+          <a
+            href="https://www.thingiverse.com/psavvas"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-neutral-950 dark:hover:text-white">Thingiverse</a
+          >
+          <a
+            href="https://gravatar.com/psavvas"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-neutral-950 dark:hover:text-white">Gravatar</a
+          >
         </div>
+        <p>© {currentYear} Paul Savvas.</p>
       </div>
     </footer>
 
-    {/* Theme-toggle behaviour */}
     <script is:inline>
-      (function setupThemeToggle() {
-        var modes = ['light', 'dark', 'system'];
+      (function themeToggle() {
+        var toggles = document.querySelectorAll('[data-theme-toggle]');
+        var icons = document.querySelectorAll('[data-theme-icon]');
+        var modes = ['system', 'light', 'dark'];
 
-        function currentMode() {
+        function getMode() {
           return localStorage.getItem('ps-theme') || 'system';
         }
 
@@ -305,107 +261,43 @@ const currentYear = new Date().getFullYear();
           var prefersDark = window.matchMedia(
             '(prefers-color-scheme: dark)'
           ).matches;
-          var shouldBeDark =
-            mode === 'dark' || (mode === 'system' && prefersDark);
-          document.documentElement.classList.toggle('dark', shouldBeDark);
-        }
-
-        function refreshIcon() {
-          var mode = currentMode();
-          var icons = document.querySelectorAll('[data-theme-icon]');
-
+          var useDark = mode === 'dark' || (mode === 'system' && prefersDark);
+          document.documentElement.classList.toggle('dark', useDark);
           icons.forEach(function (icon) {
-            icon.classList.add('hidden');
+            icon.classList.toggle(
+              'hidden',
+              icon.getAttribute('data-theme-icon') !== mode
+            );
           });
-
-          var activeIcons = document.querySelectorAll(
-            '[data-theme-icon="' + mode + '"]'
-          );
-          activeIcons.forEach(function (icon) {
-            icon.classList.remove('hidden');
+          toggles.forEach(function (toggle) {
+            toggle.setAttribute(
+              'aria-label',
+              'Theme: ' + mode + '. Click to change.'
+            );
           });
         }
 
-        var themeButtons = document.querySelectorAll('[data-theme-toggle]');
-        themeButtons.forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var idx = modes.indexOf(currentMode());
-            var next = modes[(idx + 1) % modes.length];
-            localStorage.setItem('ps-theme', next);
-            applyMode(next);
-            refreshIcon();
+        toggles.forEach(function (toggle) {
+          toggle.addEventListener('click', function () {
+            var mode = getMode();
+            var nextMode = modes[(modes.indexOf(mode) + 1) % modes.length];
+            if (nextMode === 'system') {
+              localStorage.removeItem('ps-theme');
+            } else {
+              localStorage.setItem('ps-theme', nextMode);
+            }
+            applyMode(nextMode);
           });
         });
 
-        // React to OS-level changes when mode is "system"
         window
           .matchMedia('(prefers-color-scheme: dark)')
           .addEventListener('change', function () {
-            applyMode(currentMode());
+            applyMode(getMode());
           });
 
-        applyMode(currentMode());
-        refreshIcon();
-        window.requestAnimationFrame(() => {
-          document.documentElement.classList.add('theme-transitions');
-        });
+        applyMode(getMode());
       })();
-
-      (function setupMobileMenu() {
-        var menuButton = document.getElementById('ps-mobile-menu-btn');
-        var menuPanel = document.getElementById('ps-mobile-menu');
-
-        if (!menuButton || !menuPanel) {
-          return;
-        }
-
-        var openIcon = menuButton.querySelector('[data-menu-icon="open"]');
-        var closeIcon = menuButton.querySelector('[data-menu-icon="close"]');
-        var menuLinks = menuPanel.querySelectorAll('a');
-
-        function setMenuOpen(isOpen) {
-          menuButton.setAttribute('aria-expanded', String(isOpen));
-          menuButton.setAttribute(
-            'aria-label',
-            isOpen ? 'Close navigation menu' : 'Open navigation menu'
-          );
-          menuPanel.setAttribute('aria-hidden', String(!isOpen));
-          menuPanel.classList.toggle('max-h-0', !isOpen);
-          menuPanel.classList.toggle('opacity-0', !isOpen);
-          menuPanel.classList.toggle('pointer-events-none', !isOpen);
-          menuPanel.classList.toggle('max-h-96', isOpen);
-          menuPanel.classList.toggle('opacity-100', isOpen);
-          menuPanel.classList.toggle('pointer-events-auto', isOpen);
-
-          if (openIcon) {
-            openIcon.classList.toggle('hidden', isOpen);
-          }
-
-          if (closeIcon) {
-            closeIcon.classList.toggle('hidden', !isOpen);
-          }
-        }
-
-        setMenuOpen(false);
-
-        menuButton.addEventListener('click', function () {
-          var isOpen = menuButton.getAttribute('aria-expanded') === 'true';
-          setMenuOpen(!isOpen);
-        });
-
-        menuLinks.forEach(function (link) {
-          link.addEventListener('click', function () {
-            setMenuOpen(false);
-          });
-        });
-
-        document.addEventListener('keydown', function (event) {
-          if (event.key === 'Escape') {
-            setMenuOpen(false);
-          }
-        });
-      })();
-
     </script>
   </body>
 </html>

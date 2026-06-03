@@ -16,10 +16,7 @@ export interface BlogPost {
 const publishedVisibility = 'published';
 
 let blogPostsPromise: Promise<BlogPost[]> | null = null;
-const blogBodyPromises = new Map<
-  string,
-  Promise<string>
->();
+const blogBodyPromises = new Map<string, Promise<string>>();
 
 function getEnvValue(keys: string[], label: string): string {
   for (const key of keys) {
@@ -34,7 +31,10 @@ function getEnvValue(keys: string[], label: string): string {
 
 function getNotionClient() {
   return new Client({
-    auth: getEnvValue(['NOTION_API_KEY', 'NOTION_TOKEN', 'NOTION_SECRET'], 'Notion API key'),
+    auth: getEnvValue(
+      ['NOTION_API_KEY', 'NOTION_TOKEN', 'NOTION_SECRET'],
+      'Notion API key'
+    ),
   });
 }
 
@@ -52,10 +52,12 @@ function getPropertyText(page: any, propertyName: string): string | undefined {
   switch (property.type) {
     case 'title':
     case 'rich_text':
-      return property[property.type]
-        .map((item: { plain_text?: string }) => item.plain_text ?? '')
-        .join('')
-        .trim() || undefined;
+      return (
+        property[property.type]
+          .map((item: { plain_text?: string }) => item.plain_text ?? '')
+          .join('')
+          .trim() || undefined
+      );
     case 'select':
       return property.select?.name?.trim() || undefined;
     case 'url':
@@ -77,7 +79,10 @@ function getTags(page: any): string[] {
 }
 
 function isPublished(page: any): boolean {
-  return (getPropertyText(page, 'Visibility') ?? '').toLowerCase() === publishedVisibility;
+  return (
+    (getPropertyText(page, 'Visibility') ?? '').toLowerCase() ===
+    publishedVisibility
+  );
 }
 
 function isImageUrl(url: string): boolean {
@@ -135,7 +140,8 @@ function renderVideoEmbed(url: string): string {
 }
 
 function arrangeProjectMedia(html: string): string {
-  const imageFigurePattern = /<figure data-project-media="image">[\s\S]*?<\/figure>/g;
+  const imageFigurePattern =
+    /<figure data-project-media="image">[\s\S]*?<\/figure>/g;
   const figures = html.match(imageFigurePattern);
 
   if (!figures || figures.length === 0) return html;
@@ -152,7 +158,12 @@ function arrangeProjectMedia(html: string): string {
 
       if (pair.length === 2) {
         result += `<div class="my-8 grid gap-4 md:grid-cols-2 items-start">${pair
-          .map((figure) => figure.replace('<figure data-project-media="image">', '<figure class="m-0">'))
+          .map((figure) =>
+            figure.replace(
+              '<figure data-project-media="image">',
+              '<figure class="m-0">'
+            )
+          )
           .join('')}</div>`;
       } else {
         result += `<div class="my-8 flex justify-center">${pair[0].replace(
@@ -271,26 +282,47 @@ async function loadBlogBodyHtml(pageId: string): Promise<string> {
 }
 
 async function loadPublishedBlogPosts(): Promise<BlogPost[]> {
-  const notion = getNotionClient();
+  let notion: Client;
+
+  try {
+    notion = getNotionClient();
+  } catch (error) {
+    console.warn(
+      'Skipping Notion blog posts because credentials are unavailable.',
+      error
+    );
+    return [];
+  }
+
   const posts: BlogPost[] = [];
   let startCursor: string | undefined;
 
-  do {
-    const response = await notion.dataSources.query({
-      data_source_id: getBlogDatabaseId(),
-      page_size: 100,
-      ...(startCursor ? { start_cursor: startCursor } : {}),
-    });
+  try {
+    do {
+      const response = await notion.dataSources.query({
+        data_source_id: getBlogDatabaseId(),
+        page_size: 100,
+        ...(startCursor ? { start_cursor: startCursor } : {}),
+      });
 
-    posts.push(
-      ...response.results
-        .filter((page): page is any => page.object === 'page')
-        .filter(isPublished)
-        .map(toBlogPost)
+      posts.push(
+        ...response.results
+          .filter((page): page is any => page.object === 'page')
+          .filter(isPublished)
+          .map(toBlogPost)
+      );
+
+      startCursor = response.has_more
+        ? (response.next_cursor ?? undefined)
+        : undefined;
+    } while (startCursor);
+  } catch (error) {
+    console.warn(
+      'Failed to load Notion blog posts; using an empty post list.',
+      error
     );
-
-    startCursor = response.has_more ? response.next_cursor ?? undefined : undefined;
-  } while (startCursor);
+    return [];
+  }
 
   return posts.sort((left, right) => {
     const leftDate = new Date(left.date).getTime();
