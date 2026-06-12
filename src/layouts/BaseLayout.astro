@@ -1,6 +1,8 @@
 ---
 import '../styles/globals.css';
 import Analytics from '@vercel/analytics/astro';
+import { ClientRouter } from 'astro:transitions';
+import CommandPalette from '../components/CommandPalette.astro';
 
 interface Props {
   title: string;
@@ -25,6 +27,17 @@ const navEntries = [
   { label: 'Contact', path: '/contact' },
 ];
 
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (path: string) =>
+  path === '/' ? currentPath === '/' : currentPath.startsWith(path);
+
+const socialLinks = [
+  { label: 'GitHub', href: 'https://github.com/psavvas' },
+  { label: 'Thingiverse', href: 'https://www.thingiverse.com/psavvas' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/pauldsavvas' },
+  { label: 'Gravatar', href: 'https://gravatar.com/psavvas' },
+];
+
 const currentYear = new Date().getFullYear();
 ---
 
@@ -34,6 +47,16 @@ const currentYear = new Date().getFullYear();
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#fbfbfd"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#000000"
+    />
 
     <!-- OpenGraph -->
     <meta property="og:type" content="website" />
@@ -49,107 +72,195 @@ const currentYear = new Date().getFullYear();
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!-- Inter variable font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"
+    />
+
+    <ClientRouter />
     <Analytics />
 
-    {/* Inline theme initialisation — runs before paint to avoid flash */}
+    {
+      /* Inline theme initialisation — runs before paint to avoid flash.
+        Re-applied after view transitions because <html> attributes are
+        replaced during the swap. */
+    }
     <script is:inline>
-      (function applyStoredTheme() {
-        var stored = localStorage.getItem('ps-theme');
-        var prefersDark = window.matchMedia(
-          '(prefers-color-scheme: dark)'
-        ).matches;
-        var useDark = stored === 'dark' || (stored !== 'light' && prefersDark);
-        document.documentElement.classList.toggle('dark', useDark);
-      })();
+      (function () {
+        var root = document.documentElement;
 
-      // Navbar entrance animation — only on first site load in this session
-      (function navbarEntrance() {
+        function applyStoredTheme() {
+          var stored = localStorage.getItem('ps-theme');
+          var prefersDark = window.matchMedia(
+            '(prefers-color-scheme: dark)'
+          ).matches;
+          var useDark =
+            stored === 'dark' || (stored !== 'light' && prefersDark);
+          root.classList.toggle('dark', useDark);
+        }
+
+        function markEnhanced() {
+          root.classList.add('js');
+        }
+
+        applyStoredTheme();
+        markEnhanced();
+
+        // Navbar entrance animation — only on first site load in this session
         if (!sessionStorage.getItem('ps-visited')) {
-          document.documentElement.classList.add('navbar-animate');
+          root.classList.add('navbar-animate');
           sessionStorage.setItem('ps-visited', '1');
         }
+
+        document.addEventListener('astro:after-swap', function () {
+          applyStoredTheme();
+          markEnhanced();
+          root.classList.add('theme-transitions');
+        });
       })();
     </script>
   </head>
 
-  <body>
+  <body class="bg-canvas font-sans text-ink antialiased">
+    <div class="ambient" aria-hidden="true"></div>
+    <a href="#main" class="skip-link">Skip to content</a>
+
     {/* ── Navbar ── */}
-    <header
-      id="ps-navbar"
-      class="sticky top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur transition-colors"
-    >
+    <header id="site-nav" class="site-nav glass">
       <nav
-        class="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 md:grid-cols-3 md:gap-y-0 md:py-0 md:h-14"
+        class="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-4 sm:py-2 sm:pr-2"
+        aria-label="Primary"
       >
-        {/* Brand */}
-        <div class="flex items-center">
-          <a
-            href="/"
-            id="ps-navbar-brand"
-            class="inline-flex h-10 md:h-8 items-center text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 transition-colors shrink-0 leading-none"
-          >
-            PS
-          </a>
-        </div>
+        <a
+          href="/"
+          class="flex shrink-0 items-center gap-2.5 text-[0.95rem] font-semibold tracking-tight text-ink"
+        >
+          <span
+            class="h-2 w-2 rounded-full"
+            style="background: var(--gradient-display);"
+            aria-hidden="true"></span>
+          Paul Savvas
+        </a>
 
-        {/* Mobile controls */}
-        <div class="flex items-center justify-end gap-1 md:hidden">
-          <div id="ps-navbar-theme" class="inline-flex h-10 items-center">
-            <button
-              data-theme-toggle
-              type="button"
-              aria-label="Toggle colour theme"
-              class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
-            >
-              <svg
-                class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <!-- Sun icon (light mode) -->
-                <path
-                  data-theme-icon="light"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                ></path>
-                <!-- Moon icon (dark mode) -->
-                <path
-                  data-theme-icon="dark"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                ></path>
-                <!-- Computer icon (system mode) -->
-                <path
-                  data-theme-icon="system"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                ></path>
-              </svg>
-            </button>
-          </div>
+        <ul class="hidden items-center gap-0.5 md:flex">
+          {
+            navEntries.map((entry) => (
+              <li>
+                <a
+                  href={entry.path}
+                  class="nav-link"
+                  aria-current={isActive(entry.path) ? 'page' : undefined}
+                >
+                  {entry.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
 
+        <div class="flex items-center gap-1.5">
+          {/* Search — full button on ≥sm, icon-only on small screens */}
           <button
-            id="ps-mobile-menu-btn"
             type="button"
-            aria-label="Open navigation menu"
-            aria-controls="ps-mobile-menu"
-            aria-expanded="false"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            class="nav-search-btn hidden sm:inline-flex"
+            data-search-open
+            aria-label="Search the site"
           >
             <svg
-              class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
+              viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
+              stroke-width="2"
+              class="h-4 w-4"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+              ></path>
+            </svg>
+            <span class="pr-1">Search</span>
+            <kbd data-kbd-hint>⌘K</kbd>
+          </button>
+          <button
+            type="button"
+            class="nav-icon-btn sm:hidden"
+            data-search-open
+            aria-label="Search the site"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="h-[1.15rem] w-[1.15rem]"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+              ></path>
+            </svg>
+          </button>
+
+          {/* Theme toggle: light → dark → system */}
+          <button
+            type="button"
+            class="nav-icon-btn"
+            data-theme-toggle
+            aria-label="Toggle colour theme"
+          >
+            <svg
+              class="h-[1.15rem] w-[1.15rem]"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                data-theme-icon="light"
+                class="hidden"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+              ></path>
+              <path
+                data-theme-icon="dark"
+                class="hidden"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646Z"
+              ></path>
+              <path
+                data-theme-icon="system"
+                class="hidden"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9.75 17 9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"
+              ></path>
+            </svg>
+          </button>
+
+          {/* Mobile menu toggle */}
+          <button
+            type="button"
+            class="nav-icon-btn md:hidden"
+            data-menu-toggle
+            aria-label="Open navigation menu"
+            aria-controls="mobile-menu"
+            aria-expanded="false"
+          >
+            <svg
+              class="h-[1.15rem] w-[1.15rem]"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
@@ -157,255 +268,312 @@ const currentYear = new Date().getFullYear();
                 data-menu-icon="open"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              ></path>
+                d="M4 7h16M4 12h16M4 17h16"></path>
               <path
                 data-menu-icon="close"
                 class="hidden"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 6l12 12M18 6 6 18"
-              ></path>
+                d="M6 6l12 12M18 6 6 18"></path>
             </svg>
           </button>
         </div>
-
-        {/* Navigation links */}
-        <div
-          id="ps-navbar-links"
-          class="hidden md:col-span-1 md:col-start-2 md:flex items-center justify-center md:justify-center"
-        >
-          <ul class="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 md:w-auto md:flex-nowrap md:gap-6">
-            {
-              navEntries.map((entry) => (
-                <li class="flex">
-                  <a
-                    href={entry.path}
-                    class="inline-flex h-10 md:h-8 items-center text-sm font-medium text-neutral-600 dark:text-neutral-400 transition-colors hover:text-neutral-900 dark:hover:text-neutral-100 leading-none"
-                  >
-                    {entry.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-
-        {/* Theme toggle */}
-        <div class="hidden md:row-start-1 md:col-start-3 md:flex items-center justify-end md:row-auto md:col-start-3">
-          <div
-            id="ps-navbar-theme"
-            class="inline-flex h-10 md:h-8 items-center"
-          >
-            <button
-              data-theme-toggle
-              type="button"
-              aria-label="Toggle colour theme"
-              class="rounded-lg p-2 transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:scale-110"
-            >
-              <svg
-                class="h-5 w-5 text-neutral-700 dark:text-neutral-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <!-- Sun icon (light mode) -->
-                <path
-                  data-theme-icon="light"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                ></path>
-                <!-- Moon icon (dark mode) -->
-                <path
-                  data-theme-icon="dark"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                ></path>
-                <!-- Computer icon (system mode) -->
-                <path
-                  data-theme-icon="system"
-                  class="hidden"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        </div>
       </nav>
-
-      <div
-        id="ps-mobile-menu"
-        class="max-h-0 overflow-hidden border-t border-neutral-200 bg-white px-4 transition-all duration-300 ease-out dark:border-neutral-800 dark:bg-neutral-950 md:hidden"
-        aria-hidden="true"
-      >
-        <div class="mx-auto flex max-w-6xl flex-col gap-4 py-4">
-          <ul class="flex flex-col gap-1">
-            {
-              navEntries.map((entry) => (
-                <li>
-                  <a
-                    href={entry.path}
-                    class="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
-                  >
-                    {entry.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-      </div>
     </header>
 
+    {/* ── Mobile menu ── */}
+    <div id="mobile-menu" class="mobile-menu glass p-2 md:hidden">
+      {
+        navEntries.map((entry) => (
+          <a
+            href={entry.path}
+            class="flex items-center justify-between rounded-2xl px-4 py-3 text-[0.95rem] font-medium text-ink-secondary hover:bg-subtle hover:text-ink"
+            aria-current={isActive(entry.path) ? 'page' : undefined}
+          >
+            {entry.label}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="h-4 w-4 opacity-40"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </a>
+        ))
+      }
+    </div>
+
     {/* ── Page content ── */}
-    <slot />
+    <main id="main">
+      <slot />
+    </main>
 
     {/* ── Footer ── */}
-    <footer
-      class="w-full border-t border-gray-200 dark:border-neutral-800 transition-colors"
-    >
-      <div
-        class="mx-auto max-w-7xl px-6 py-6 flex w-full items-center justify-between gap-3 text-sm text-gray-500 dark:text-neutral-400"
-      >
-        <span>&copy; {currentYear} Paul Savvas. All rights reserved.</span>
-        <div class="flex items-center gap-3">
-          <a
-            href="https://astro.build"
-            class="hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Built with Astro
-          </a>
+    <footer class="border-t border-hairline">
+      <div class="mx-auto w-full max-w-6xl px-6 py-14 sm:px-10">
+        <div
+          class="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between"
+        >
+          <div class="max-w-xs">
+            <a
+              href="/"
+              class="flex items-center gap-2.5 text-[0.95rem] font-semibold tracking-tight text-ink"
+            >
+              <span
+                class="h-2 w-2 rounded-full"
+                style="background: var(--gradient-display);"
+                aria-hidden="true"></span>
+              Paul Savvas
+            </a>
+            <p class="mt-3 text-sm leading-6 text-ink-tertiary">
+              Student engineer building practical tools across software,
+              hardware, and 3D design.
+            </p>
+          </div>
+
+          <div class="flex gap-16">
+            <div>
+              <p class="eyebrow">Explore</p>
+              <ul class="mt-4 space-y-2.5">
+                {
+                  navEntries.map((entry) => (
+                    <li>
+                      <a
+                        href={entry.path}
+                        class="text-sm text-ink-secondary transition-colors hover:text-ink"
+                      >
+                        {entry.label}
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+            <div>
+              <p class="eyebrow">Elsewhere</p>
+              <ul class="mt-4 space-y-2.5">
+                {
+                  socialLinks.map((link) => (
+                    <li>
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-sm text-ink-secondary transition-colors hover:text-ink"
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="mt-12 flex flex-col gap-3 border-t border-hairline pt-6 text-sm text-ink-tertiary sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span>&copy; {currentYear} Paul Savvas. All rights reserved.</span>
+          <div class="flex items-center gap-4">
+            <a
+              href="https://paulsavvas.instatus.com"
+              class="transition-colors hover:text-ink"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Status
+            </a>
+            <a
+              href="https://astro.build"
+              class="transition-colors hover:text-ink"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Built with Astro
+            </a>
+          </div>
         </div>
       </div>
     </footer>
 
-    {/* Theme-toggle behaviour */}
-    <script is:inline>
-      (function setupThemeToggle() {
-        var modes = ['light', 'dark', 'system'];
+    <CommandPalette />
 
-        function currentMode() {
-          return localStorage.getItem('ps-theme') || 'system';
-        }
+    {
+      /* Global interactions: theme toggle, mobile menu, scroll state,
+        active nav links, and scroll-triggered reveals. Listeners are
+        delegated to `document` and bound exactly once so they survive
+        view-transition page swaps. */
+    }
+    <script>
+      const THEME_KEY = 'ps-theme';
+      const MODES = ['light', 'dark', 'system'];
 
-        function applyMode(mode) {
-          var prefersDark = window.matchMedia(
-            '(prefers-color-scheme: dark)'
-          ).matches;
-          var shouldBeDark =
-            mode === 'dark' || (mode === 'system' && prefersDark);
-          document.documentElement.classList.toggle('dark', shouldBeDark);
-        }
+      function currentMode(): string {
+        return localStorage.getItem(THEME_KEY) || 'system';
+      }
 
-        function refreshIcon() {
-          var mode = currentMode();
-          var icons = document.querySelectorAll('[data-theme-icon]');
+      function applyMode(mode: string) {
+        const prefersDark = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches;
+        document.documentElement.classList.toggle(
+          'dark',
+          mode === 'dark' || (mode === 'system' && prefersDark)
+        );
+      }
 
-          icons.forEach(function (icon) {
-            icon.classList.add('hidden');
+      function refreshThemeIcons() {
+        const mode = currentMode();
+        document
+          .querySelectorAll<HTMLElement>('[data-theme-icon]')
+          .forEach((icon) => {
+            icon.classList.toggle('hidden', icon.dataset.themeIcon !== mode);
           });
+      }
 
-          var activeIcons = document.querySelectorAll(
-            '[data-theme-icon="' + mode + '"]'
-          );
-          activeIcons.forEach(function (icon) {
-            icon.classList.remove('hidden');
+      function menuButton() {
+        return document.querySelector<HTMLElement>('[data-menu-toggle]');
+      }
+
+      function isMenuOpen() {
+        return (
+          document
+            .getElementById('mobile-menu')
+            ?.classList.contains('is-open') ?? false
+        );
+      }
+
+      function setMenuOpen(open: boolean) {
+        const menu = document.getElementById('mobile-menu');
+        const button = menuButton();
+        if (!menu || !button) return;
+
+        menu.classList.toggle('is-open', open);
+        button.setAttribute('aria-expanded', String(open));
+        button.setAttribute(
+          'aria-label',
+          open ? 'Close navigation menu' : 'Open navigation menu'
+        );
+        button
+          .querySelector('[data-menu-icon="open"]')
+          ?.classList.toggle('hidden', open);
+        button
+          .querySelector('[data-menu-icon="close"]')
+          ?.classList.toggle('hidden', !open);
+      }
+
+      function syncNavScrollState() {
+        document
+          .getElementById('site-nav')
+          ?.classList.toggle('is-scrolled', window.scrollY > 8);
+      }
+
+      function syncPlatformHints() {
+        const isApplePlatform = /Mac|iPhone|iPad|iPod/.test(
+          navigator.platform || navigator.userAgent
+        );
+        document
+          .querySelectorAll<HTMLElement>('[data-kbd-hint]')
+          .forEach((kbd) => {
+            kbd.textContent = isApplePlatform ? '⌘K' : 'Ctrl K';
           });
-        }
+      }
 
-        var themeButtons = document.querySelectorAll('[data-theme-toggle]');
-        themeButtons.forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var idx = modes.indexOf(currentMode());
-            var next = modes[(idx + 1) % modes.length];
-            localStorage.setItem('ps-theme', next);
+      function setupReveals() {
+        const existing = (window as any).__psRevealObserver as
+          | IntersectionObserver
+          | undefined;
+        existing?.disconnect();
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-revealed');
+                observer.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.1, rootMargin: '0px 0px -6% 0px' }
+        );
+
+        document
+          .querySelectorAll('[data-reveal]:not(.is-revealed)')
+          .forEach((el) => observer.observe(el));
+        (window as any).__psRevealObserver = observer;
+      }
+
+      function onPageReady() {
+        refreshThemeIcons();
+        syncNavScrollState();
+        syncPlatformHints();
+        setupReveals();
+      }
+
+      if (!(window as any).__psLayoutBound) {
+        (window as any).__psLayoutBound = true;
+
+        document.addEventListener('click', (event) => {
+          const target = event.target as HTMLElement;
+
+          if (target.closest('[data-theme-toggle]')) {
+            const next =
+              MODES[(MODES.indexOf(currentMode()) + 1) % MODES.length];
+            localStorage.setItem(THEME_KEY, next);
             applyMode(next);
-            refreshIcon();
-          });
+            refreshThemeIcons();
+            return;
+          }
+
+          if (target.closest('[data-menu-toggle]')) {
+            setMenuOpen(!isMenuOpen());
+            return;
+          }
+
+          if (target.closest('#mobile-menu a')) {
+            setMenuOpen(false);
+            return;
+          }
+
+          if (isMenuOpen() && !target.closest('#mobile-menu')) {
+            setMenuOpen(false);
+          }
         });
 
-        // React to OS-level changes when mode is "system"
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setMenuOpen(false);
+        });
+
         window
           .matchMedia('(prefers-color-scheme: dark)')
-          .addEventListener('change', function () {
-            applyMode(currentMode());
-          });
+          .addEventListener('change', () => applyMode(currentMode()));
 
-        applyMode(currentMode());
-        refreshIcon();
+        window.addEventListener('scroll', syncNavScrollState, {
+          passive: true,
+        });
+
+        document.addEventListener('astro:page-load', onPageReady);
+
         window.requestAnimationFrame(() => {
           document.documentElement.classList.add('theme-transitions');
         });
-      })();
+      }
 
-      (function setupMobileMenu() {
-        var menuButton = document.getElementById('ps-mobile-menu-btn');
-        var menuPanel = document.getElementById('ps-mobile-menu');
-
-        if (!menuButton || !menuPanel) {
-          return;
-        }
-
-        var openIcon = menuButton.querySelector('[data-menu-icon="open"]');
-        var closeIcon = menuButton.querySelector('[data-menu-icon="close"]');
-        var menuLinks = menuPanel.querySelectorAll('a');
-
-        function setMenuOpen(isOpen) {
-          menuButton.setAttribute('aria-expanded', String(isOpen));
-          menuButton.setAttribute(
-            'aria-label',
-            isOpen ? 'Close navigation menu' : 'Open navigation menu'
-          );
-          menuPanel.setAttribute('aria-hidden', String(!isOpen));
-          menuPanel.classList.toggle('max-h-0', !isOpen);
-          menuPanel.classList.toggle('opacity-0', !isOpen);
-          menuPanel.classList.toggle('pointer-events-none', !isOpen);
-          menuPanel.classList.toggle('max-h-96', isOpen);
-          menuPanel.classList.toggle('opacity-100', isOpen);
-          menuPanel.classList.toggle('pointer-events-auto', isOpen);
-
-          if (openIcon) {
-            openIcon.classList.toggle('hidden', isOpen);
-          }
-
-          if (closeIcon) {
-            closeIcon.classList.toggle('hidden', !isOpen);
-          }
-        }
-
-        setMenuOpen(false);
-
-        menuButton.addEventListener('click', function () {
-          var isOpen = menuButton.getAttribute('aria-expanded') === 'true';
-          setMenuOpen(!isOpen);
+      if (document.readyState !== 'loading') {
+        onPageReady();
+      } else {
+        document.addEventListener('DOMContentLoaded', onPageReady, {
+          once: true,
         });
-
-        menuLinks.forEach(function (link) {
-          link.addEventListener('click', function () {
-            setMenuOpen(false);
-          });
-        });
-
-        document.addEventListener('keydown', function (event) {
-          if (event.key === 'Escape') {
-            setMenuOpen(false);
-          }
-        });
-      })();
-
+      }
     </script>
   </body>
 </html>

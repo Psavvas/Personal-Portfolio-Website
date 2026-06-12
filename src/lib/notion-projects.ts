@@ -1,6 +1,7 @@
 import { Client } from '@notionhq/client';
 import { NotionToMarkdown } from 'notion-to-md';
 import { marked } from 'marked';
+import { mockProjects, mockProjectBody } from './mock-data';
 
 export interface ProjectRecord {
   id: string;
@@ -43,13 +44,21 @@ function getEnvValue(keys: string[], label: string): string {
 
 function getNotionClient() {
   return new Client({
-    auth: getEnvValue(['NOTION_API_KEY', 'NOTION_TOKEN', 'NOTION_SECRET'], 'Notion API key'),
+    auth: getEnvValue(
+      ['NOTION_API_KEY', 'NOTION_TOKEN', 'NOTION_SECRET'],
+      'Notion API key'
+    ),
   });
 }
 
 function getDatabaseId() {
   return getEnvValue(
-    ['NOTION_PROJECTS_DB_ID', 'NOTION_DATABASE_ID', 'NOTION_PROJECTS_DATABASE_ID', 'NOTION_DB_ID'],
+    [
+      'NOTION_PROJECTS_DB_ID',
+      'NOTION_DATABASE_ID',
+      'NOTION_PROJECTS_DATABASE_ID',
+      'NOTION_DB_ID',
+    ],
     'Notion database ID'
   );
 }
@@ -61,10 +70,12 @@ function getPropertyText(page: any, propertyName: string): string | undefined {
   switch (property.type) {
     case 'title':
     case 'rich_text':
-      return property[property.type]
-        .map((item: { plain_text?: string }) => item.plain_text ?? '')
-        .join('')
-        .trim() || undefined;
+      return (
+        property[property.type]
+          .map((item: { plain_text?: string }) => item.plain_text ?? '')
+          .join('')
+          .trim() || undefined
+      );
     case 'select':
       return property.select?.name?.trim() || undefined;
     case 'url':
@@ -102,7 +113,10 @@ function getProjectSortYear(year?: string): number {
 }
 
 function isPublished(page: any): boolean {
-  return (getPropertyText(page, 'Visibility') ?? '').toLowerCase() === publishedVisibility;
+  return (
+    (getPropertyText(page, 'Visibility') ?? '').toLowerCase() ===
+    publishedVisibility
+  );
 }
 
 function isImageUrl(url: string): boolean {
@@ -197,7 +211,8 @@ function buildTopLinksHtml(html: string): string {
 }
 
 function arrangeProjectMedia(html: string): string {
-  const imageFigurePattern = /<figure data-project-media="image">[\s\S]*?<\/figure>/g;
+  const imageFigurePattern =
+    /<figure data-project-media="image">[\s\S]*?<\/figure>/g;
   const figures = html.match(imageFigurePattern);
 
   if (!figures || figures.length === 0) return html;
@@ -214,7 +229,12 @@ function arrangeProjectMedia(html: string): string {
 
       if (pair.length === 2) {
         result += `<div class="my-8 grid gap-4 md:grid-cols-2 items-start">${pair
-          .map((figure) => figure.replace('<figure data-project-media="image">', '<figure class="m-0">'))
+          .map((figure) =>
+            figure.replace(
+              '<figure data-project-media="image">',
+              '<figure class="m-0">'
+            )
+          )
           .join('')}</div>`;
       } else {
         result += `<div class="my-8 flex justify-center">${pair[0].replace(
@@ -259,10 +279,13 @@ function toProjectRecord(page: any): ProjectRecord {
   return {
     id: page.id,
     title:
-      getPropertyText(page, 'Project Name') ?? getPropertyText(page, 'Name') ?? 'Untitled project',
+      getPropertyText(page, 'Project Name') ??
+      getPropertyText(page, 'Name') ??
+      'Untitled project',
     summary: getPropertyText(page, 'Project Description') ?? '',
     tags: getTags(page),
-    year: getPropertyText(page, 'Project Year') ?? getPropertyText(page, 'Year'),
+    year:
+      getPropertyText(page, 'Project Year') ?? getPropertyText(page, 'Year'),
     featured: getBoolean(page, 'Featured'),
     projectPage: getBoolean(page, 'Project Page'),
     slug: getPropertyText(page, 'Slug'),
@@ -271,7 +294,13 @@ function toProjectRecord(page: any): ProjectRecord {
   };
 }
 
-async function loadProjectBodyHtml(pageId: string): Promise<{ bodyHtml: string; topLinksHtml: string }> {
+async function loadProjectBodyHtml(
+  pageId: string
+): Promise<{ bodyHtml: string; topLinksHtml: string }> {
+  if (process.env.NOTION_MOCK === '1') {
+    return { ...mockProjectBody };
+  }
+
   const notion = getNotionClient();
   const converter = new NotionToMarkdown({ notionClient: notion });
 
@@ -317,7 +346,7 @@ async function loadProjectBodyHtml(pageId: string): Promise<{ bodyHtml: string; 
           videoId = url.split('v=')[1]?.split('&')[0] || '';
         }
         if (videoId) {
-            return renderVideoEmbed(`https://www.youtube.com/embed/${videoId}`);
+          return renderVideoEmbed(`https://www.youtube.com/embed/${videoId}`);
         }
       }
 
@@ -343,7 +372,8 @@ async function loadProjectBodyHtml(pageId: string): Promise<{ bodyHtml: string; 
   const dividerIndex = html.search(/<hr\b[^>]*>/i);
   if (dividerIndex >= 0) {
     const topSection = html.slice(0, dividerIndex);
-    const dividerEnd = html.slice(dividerIndex).match(/^<hr\b[^>]*>\s*/i)?.[0].length ?? 0;
+    const dividerEnd =
+      html.slice(dividerIndex).match(/^<hr\b[^>]*>\s*/i)?.[0].length ?? 0;
     const bodyHtml = html.slice(dividerIndex + dividerEnd);
 
     return {
@@ -359,6 +389,10 @@ async function loadProjectBodyHtml(pageId: string): Promise<{ bodyHtml: string; 
 }
 
 async function loadPublishedProjects(): Promise<ProjectRecord[]> {
+  if (process.env.NOTION_MOCK === '1') {
+    return mockProjects.map((project) => ({ ...project }));
+  }
+
   const notion = getNotionClient();
   const projects: ProjectRecord[] = [];
   let startCursor: string | undefined;
@@ -377,7 +411,9 @@ async function loadPublishedProjects(): Promise<ProjectRecord[]> {
         .map(toProjectRecord)
     );
 
-    startCursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+    startCursor = response.has_more
+      ? (response.next_cursor ?? undefined)
+      : undefined;
   } while (startCursor);
 
   return projects.sort((left, right) => {
@@ -405,7 +441,9 @@ function getProjectsPromise(): Promise<ProjectRecord[]> {
   return projectsPromise;
 }
 
-function getProjectBodyPromise(pageId: string): Promise<{ bodyHtml: string; topLinksHtml: string }> {
+function getProjectBodyPromise(
+  pageId: string
+): Promise<{ bodyHtml: string; topLinksHtml: string }> {
   const cached = projectBodyPromises.get(pageId);
   if (cached) return cached;
 
@@ -420,7 +458,9 @@ export async function getPublishedProjects(): Promise<ProjectRecord[]> {
 
 export async function getPublishedProjectPages(): Promise<ProjectRecord[]> {
   const projects = await getProjectsPromise();
-  return projects.filter((project) => project.projectPage && Boolean(project.slug));
+  return projects.filter(
+    (project) => project.projectPage && Boolean(project.slug)
+  );
 }
 
 export async function getProjectBySlug(
@@ -459,22 +499,22 @@ export function formatProjectYear(year?: string): string | undefined {
   return value ? value : undefined;
 }
 
-export function getLatestProject(projects: ProjectRecord[]): ProjectRecord | undefined {
-  return projects
-    .slice()
-    .sort((a, b) => {
-      const aYear = getProjectSortYear(a.year);
-      const bYear = getProjectSortYear(b.year);
+export function getLatestProject(
+  projects: ProjectRecord[]
+): ProjectRecord | undefined {
+  return projects.slice().sort((a, b) => {
+    const aYear = getProjectSortYear(a.year);
+    const bYear = getProjectSortYear(b.year);
 
-      if (bYear !== aYear) {
-        return bYear - aYear;
-      }
+    if (bYear !== aYear) {
+      return bYear - aYear;
+    }
 
-      // If same year, prioritize featured projects
-      if (a.featured !== b.featured) {
-        return a.featured ? -1 : 1;
-      }
+    // If same year, prioritize featured projects
+    if (a.featured !== b.featured) {
+      return a.featured ? -1 : 1;
+    }
 
-      return a.title.localeCompare(b.title);
-    })[0];
+    return a.title.localeCompare(b.title);
+  })[0];
 }

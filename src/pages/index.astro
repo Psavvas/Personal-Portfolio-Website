@@ -6,474 +6,417 @@ import {
   getPublishedProjects,
 } from '../lib/notion-projects';
 import { getPublishedBlogPosts } from '../lib/notion-blog';
+import { formatDate } from '../lib/format';
 
 const projects = await getPublishedProjects();
 const blogPosts = await getPublishedBlogPosts();
 
 const latestProject = getLatestProject(projects);
+const latestProjectDest = latestProject
+  ? getProjectDestination(latestProject)
+  : null;
 const latestPost = blogPosts[0];
 const projectCount = projects.length;
 const blogCount = blogPosts.length;
+
+const socials = [
+  { label: 'GitHub', href: 'https://github.com/psavvas' },
+  { label: 'Thingiverse', href: 'https://www.thingiverse.com/psavvas' },
+  { label: 'Gravatar', href: 'https://gravatar.com/psavvas' },
+];
+
+const stats = [
+  {
+    label: 'Projects',
+    value: String(projectCount),
+    detail: projectCount === 1 ? 'project shipped' : 'projects shipped',
+    href: '/projects',
+  },
+  {
+    label: 'Blog posts',
+    value: String(blogCount),
+    detail: blogCount === 1 ? 'post published' : 'posts published',
+    href: '/blog',
+  },
+  {
+    label: 'School',
+    value: 'GMHS',
+    detail: 'STEM Academy · Grade 10',
+  },
+  {
+    label: 'Location',
+    value: 'Maryland',
+    detail: 'United States',
+  },
+];
+
+const disciplines = [
+  {
+    title: 'Software',
+    description:
+      'Small products, utilities, and experiments that are fast to iterate and easy to maintain.',
+    icon: 'M6.75 7.5 3 11.25l3.75 3.75m10.5-7.5 3.75 3.75-3.75 3.75M14.25 4.5l-4.5 15',
+  },
+  {
+    title: 'Hardware',
+    description:
+      'Practical builds where constraints — power, sensors, materials — shape the solution.',
+    icon: 'M8.25 3v2.25M15.75 3v2.25M8.25 18.75V21M15.75 18.75V21M3 8.25h2.25M3 15.75h2.25M18.75 8.25H21M18.75 15.75H21M7.5 5.25h9A2.25 2.25 0 0 1 18.75 7.5v9a2.25 2.25 0 0 1-2.25 2.25h-9A2.25 2.25 0 0 1 5.25 16.5v-9A2.25 2.25 0 0 1 7.5 5.25Zm2.25 4.5h4.5v4.5h-4.5v-4.5Z',
+  },
+  {
+    title: '3D Design',
+    description:
+      'Parts and prototypes that are tested, adjusted, and refined in real conditions.',
+    icon: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9',
+  },
+];
 ---
 
 <BaseLayout
   title="Paul Savvas"
   description="Paul Savvas, student engineer who builds practical tools across software, hardware, and 3D design."
 >
-  <div
-    class="min-h-screen bg-white font-sans dark:bg-neutral-950 transition-colors"
-  >
-    <main
-      class="mx-auto flex w-full max-w-6xl flex-col gap-16 bg-white px-6 py-24 dark:bg-neutral-950 sm:px-16 sm:py-32 animate-fade-in"
+  <div class="overflow-x-clip">
+    {/* ── Hero ── */}
+    <section
+      class="relative mx-auto flex min-h-[92svh] w-full max-w-5xl flex-col items-center justify-center px-6 pt-36 pb-16 text-center sm:pt-40"
     >
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-copy" data-reveal>
-            <p class="eyebrow">Student, Engineer, Developer and Leader</p>
-            <h1>Paul Savvas</h1>
-            <p class="lede">
-              Hello, I am a STEM Academy student who builds practical tools to
-              help the world work better. I combine engineering, design, and
-              systems thinking to create solutions that are clear, durable, and
-              genuinely useful. My work spans software, hardware, and 3D design,
-              where I test ideas in real conditions and refine them until they
-              hold up beyond the classroom. I value simplicity, structure, and
-              impact, and aim to ship tools that solve real problems and improve
-              over time.
-            </p>
-            <p class="lede">
-              This website showcases my projects, designs, and contributions
-              across various domains. Feel free to explore my work, and connect
-              with me on GitHub, Thingiverse, or Gravatar.
-            </p>
-            <div class="hero-actions">
-              <a
-                class="site-btn site-btn--ghost hover-lift"
-                href="https://github.com/psavvas"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>
-              <a
-                class="site-btn site-btn--ghost hover-lift"
-                href="https://www.thingiverse.com/psavvas"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Thingiverse
-              </a>
-              <a
-                class="site-btn site-btn--ghost hover-lift"
-                href="https://gravatar.com/psavvas"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Gravatar
-              </a>
-            </div>
-            <div class="hero-chips">
-              <span class="chip">STEM Academy · Grade 10</span>
-              <span class="chip">Product + Engineering</span>
-            </div>
-          </div>
-          <div class="hero-panel card" data-reveal>
-            <div class="panel-head">
-              <p class="status-label">STATUS</p>
-              <a
-                id="ps-home-status-pill"
-                class="live-pill"
-                href="https://paulsavvas.instatus.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Open site status page"
-              >
-                <span id="ps-home-status-dot" class="live-dot" aria-hidden="true"></span>
-                <span id="ps-home-status-label">Live</span>
-              </a>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block meta-block--full live-signal">
-                <p class="label inline-flex items-center gap-1.5">
-                  <svg
-                    class="h-3.5 w-3.5 opacity-70"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Zm0 4.5 9 4.5 9-4.5M3 16.5 12 21l9-4.5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                  Latest project
-                </p>
-                {
-                  latestProject ? (
-                    (() => {
-                      const destination = getProjectDestination(latestProject);
+      <div data-reveal>
+        <a
+          id="home-status-pill"
+          class="status-pill"
+          data-status="UP"
+          href="https://paulsavvas.instatus.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open site status page"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-status-label>All systems live</span>
+        </a>
+      </div>
 
-                      if (!destination) {
-                        return <p class="value">{latestProject.title}</p>;
-                      }
+      <h1
+        class="display mt-8 text-[clamp(3rem,9vw,5.5rem)]"
+        data-reveal
+        style="--reveal-delay: 80ms"
+      >
+        Paul Savvas
+      </h1>
 
-                      return (
-                        <a
-                          class="value value-link"
-                          href={destination.url}
-                          {...(destination.external
-                            ? { target: '_blank', rel: 'noopener noreferrer' }
-                            : {})}
-                        >
-                          <span class="value-text">{latestProject.title}</span>
-                          <svg
-                            class="value-arrow"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                            focusable="false"
-                          >
-                            <path
-                              d="M5 12h12m0 0-4-4m4 4-4 4"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                            />
-                          </svg>
-                        </a>
-                      );
-                    })()
-                  ) : (
-                    <p class="value">New project coming soon</p>
-                  )
-                }
-              </div>
-            </div>
-            <div class="meta-row">
-              <div class="meta-block meta-block--full live-signal">
-                <p class="label inline-flex items-center gap-1.5">
-                  <svg
-                    class="h-3.5 w-3.5 opacity-70"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Zm3 4h8m-8 4h8m-8 4h5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                  Latest blog post
+      <p
+        class="mt-5 max-w-3xl text-[clamp(1.35rem,3.4vw,2.1rem)] leading-[1.2] font-semibold tracking-tight text-ink"
+        data-reveal
+        style="--reveal-delay: 160ms"
+      >
+        Building <span class="text-gradient">practical tools</span> across software,
+        hardware, and 3D&nbsp;design.
+      </p>
+
+      <p
+        class="mt-7 max-w-2xl text-base leading-8 text-ink-secondary sm:text-lg"
+        data-reveal
+        style="--reveal-delay: 240ms"
+      >
+        I'm a STEM Academy student who combines engineering, design, and systems
+        thinking to create solutions that are clear, durable, and genuinely
+        useful — tested in real conditions and refined until they hold up beyond
+        the classroom.
+      </p>
+
+      <div
+        class="mt-10 flex flex-wrap items-center justify-center gap-3"
+        data-reveal
+        style="--reveal-delay: 320ms"
+      >
+        <a class="btn btn-primary" href="/projects">
+          Explore projects
+          <svg
+            class="btn-arrow"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M5 12h14m0 0-5-5m5 5-5 5"></path>
+          </svg>
+        </a>
+        <a class="btn btn-secondary" href="/blog">Read the blog</a>
+      </div>
+
+      <div
+        class="mt-9 flex flex-wrap items-center justify-center gap-2"
+        data-reveal
+        style="--reveal-delay: 400ms"
+      >
+        {
+          socials.map((social) => (
+            <a
+              class="btn btn-ghost btn--sm"
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {social.label}
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="h-3 w-3 opacity-50"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M7 17 17 7m0 0H9m8 0v8"
+                />
+              </svg>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    {/* ── Stats ── */}
+    <section class="mx-auto w-full max-w-6xl px-6 pb-10 sm:px-10">
+      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {
+          stats.map((stat, index) => {
+            const inner = (
+              <>
+                <p class="eyebrow">{stat.label}</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-ink">
+                  {stat.value}
                 </p>
-                {
-                  latestPost ? (
-                    <a
-                      class="value value-link"
-                      href={`/blog/${latestPost.slug}`}
-                    >
-                      <span class="value-text">{latestPost.title}</span>
-                      <svg
-                        class="value-arrow"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          d="M5 12h12m0 0-4-4m4 4-4 4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                        />
-                      </svg>
-                    </a>
-                  ) : (
-                    <p class="value">New post coming soon</p>
-                  )
-                }
-              </div>
-            </div>
-            <div class="meta-row meta-row--counts">
-              <div class="meta-block live-signal">
-                <p class="label inline-flex items-center gap-1.5">
-                  <svg
-                    class="h-3.5 w-3.5 opacity-70"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
+                <p class="mt-1 text-sm text-ink-tertiary">{stat.detail}</p>
+              </>
+            );
+            return (
+              <div data-reveal style={`--reveal-delay: ${index * 80}ms`}>
+                {stat.href ? (
+                  <a
+                    href={stat.href}
+                    class="card card-interactive block p-6 no-underline"
                   >
-                    <path
-                      d="M4.5 7.5h15v12h-15Zm0 0 3-3h9l3 3"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                  Projects
+                    {inner}
+                  </a>
+                ) : (
+                  <div class="card p-6">{inner}</div>
+                )}
+              </div>
+            );
+          })
+        }
+      </div>
+    </section>
+
+    {/* ── Latest work ── */}
+    <section class="mx-auto w-full max-w-6xl px-6 py-16 sm:px-10">
+      <div class="flex items-end justify-between gap-4" data-reveal>
+        <h2 class="display text-3xl sm:text-4xl">The latest.</h2>
+        <a
+          href="/projects"
+          class="hidden text-sm font-medium text-accent hover:underline sm:block"
+        >
+          View all projects →
+        </a>
+      </div>
+
+      <div class="mt-8 grid gap-5 md:grid-cols-2">
+        {
+          latestProject && (
+            <div data-reveal>
+              <a
+                class="card card-interactive group flex h-full flex-col p-7 no-underline sm:p-8"
+                href={latestProjectDest?.url ?? '/projects'}
+                {...(latestProjectDest?.external
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
+              >
+                <p class="eyebrow">Latest project</p>
+                <h3 class="mt-4 text-2xl font-semibold tracking-tight text-ink">
+                  {latestProject.title}
+                </h3>
+                <p class="mt-3 line-clamp-3 text-[0.95rem] leading-7 text-ink-secondary">
+                  {latestProject.summary}
                 </p>
-                <a class="value value-link" href="/projects">
-                  <span class="value-text value-count">
-                    {projectCount}
-                    {projectCount === 1 ? 'project' : 'projects'}
+                <div class="mt-auto flex items-center justify-between pt-6">
+                  <div class="flex flex-wrap gap-2">
+                    {latestProject.tags.slice(0, 3).map((tag) => (
+                      <span class="chip">{tag}</span>
+                    ))}
+                  </div>
+                  <span
+                    class="text-accent transition-transform duration-300 group-hover:translate-x-1"
+                    aria-hidden="true"
+                  >
+                    →
                   </span>
-                  <svg
-                    class="value-arrow"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M5 12h12m0 0-4-4m4 4-4 4"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"></path>
-                  </svg>
-                </a>
-              </div>
-              <div class="meta-block live-signal">
-                <p class="label inline-flex items-center gap-1.5">
-                  <svg
-                    class="h-3.5 w-3.5 opacity-70"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V7A1.5 1.5 0 0 1 5 5.5Zm2.5 4h9m-9 3.5h9"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                  Blog posts
+                </div>
+              </a>
+            </div>
+          )
+        }
+
+        {
+          latestPost && (
+            <div data-reveal style="--reveal-delay: 100ms">
+              <a
+                class="card card-interactive group flex h-full flex-col p-7 no-underline sm:p-8"
+                href={`/blog/${latestPost.slug}`}
+              >
+                <p class="eyebrow">Latest blog post</p>
+                <h3 class="mt-4 text-2xl font-semibold tracking-tight text-ink">
+                  {latestPost.title}
+                </h3>
+                <p class="mt-3 line-clamp-3 text-[0.95rem] leading-7 text-ink-secondary">
+                  {latestPost.summary}
                 </p>
-                <a class="value value-link" href="/blog">
-                  <span class="value-text value-count">
-                    {blogCount}
-                    {blogCount === 1 ? 'post' : 'posts'}
+                <div class="mt-auto flex items-center justify-between pt-6">
+                  <span class="text-sm text-ink-tertiary">
+                    {formatDate(latestPost.date)}
                   </span>
-                  <svg
-                    class="value-arrow"
-                    viewBox="0 0 24 24"
+                  <span
+                    class="text-accent transition-transform duration-300 group-hover:translate-x-1"
                     aria-hidden="true"
-                    focusable="false"
+                  >
+                    →
+                  </span>
+                </div>
+              </a>
+            </div>
+          )
+        }
+      </div>
+    </section>
+
+    {/* ── Disciplines ── */}
+    <section class="mx-auto w-full max-w-6xl px-6 py-16 sm:px-10">
+      <div class="max-w-2xl" data-reveal>
+        <h2 class="display text-3xl sm:text-4xl">
+          Three disciplines. One approach.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-ink-secondary">
+          I value simplicity, structure, and impact — and aim to ship tools that
+          solve real problems and improve over time.
+        </p>
+      </div>
+
+      <div class="mt-10 grid gap-5 md:grid-cols-3">
+        {
+          disciplines.map((discipline, index) => (
+            <div data-reveal style={`--reveal-delay: ${index * 100}ms`}>
+              <div class="card card-interactive h-full p-7">
+                <span
+                  class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-hairline bg-subtle text-ink"
+                  aria-hidden="true"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    class="h-5 w-5"
                   >
                     <path
-                      d="M5 12h12m0 0-4-4m4 4-4 4"
-                      fill="none"
-                      stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="2"></path>
+                      d={discipline.icon}
+                    />
                   </svg>
-                </a>
+                </span>
+                <h3 class="mt-5 text-lg font-semibold tracking-tight text-ink">
+                  {discipline.title}
+                </h3>
+                <p class="mt-2 text-sm leading-6 text-ink-secondary">
+                  {discipline.description}
+                </p>
               </div>
             </div>
-            <div class="meta-row">
-              <div class="meta-block live-signal">
-                <p class="label inline-flex items-center gap-1.5">
-                  <svg
-                    class="h-3.5 w-3.5 opacity-70"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M3 9.5 12 5l9 4.5-9 4.5-9-4.5Zm3 3.2V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-3.3"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                  School
-                </p>
-                <p class="value">GMHS STEM Academy</p>
-              </div>
-              <div class="meta-block live-signal">
-                <p class="label inline-flex items-center gap-1.5">
-                  <svg
-                    class="h-3.5 w-3.5 opacity-70"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M12 20s6-5.1 6-10a6 6 0 1 0-12 0c0 4.9 6 10 6 10Zm0-8a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                  Location
-                </p>
-                <p class="value">Maryland, USA</p>
-              </div>
-            </div>
-          </div>
+          ))
+        }
+      </div>
+    </section>
+
+    {/* ── CTA ── */}
+    <section class="mx-auto w-full max-w-4xl px-6 py-24 text-center sm:px-10">
+      <div data-reveal>
+        <h2 class="display text-3xl sm:text-5xl">
+          Have an idea <span class="text-gradient">worth building?</span>
+        </h2>
+        <p class="mx-auto mt-5 max-w-xl text-base leading-7 text-ink-secondary">
+          I'm always interested in collaborating, comparing notes, or talking
+          through a project. Reach out — I'd love to hear from you.
+        </p>
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <a class="btn btn-primary" href="/contact">
+            Get in touch
+            <svg
+              class="btn-arrow"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M5 12h14m0 0-5-5m5 5-5 5"></path>
+            </svg>
+          </a>
+          <a class="btn btn-secondary" href="/about">More about me</a>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
   </div>
 
-  <script is:inline>
-    (function setupHomeStatusPill() {
-      var pillEl = document.getElementById('ps-home-status-pill');
-      var labelEl = document.getElementById('ps-home-status-label');
-      var dotEl = document.getElementById('ps-home-status-dot');
-      if (!pillEl || !labelEl || !dotEl) return;
+  {/* Live status pill — fed by instatus, view-transition safe. */}
+  <script>
+    const STATUS_LABELS: Record<string, string> = {
+      UP: 'All systems live',
+      HASISSUES: 'Experiencing issues',
+      UNDERMAINTENANCE: 'Under maintenance',
+      DOWN: 'Service outage',
+    };
 
-      var statusMap = {
-        UP: {
-          label: 'Live',
-          light: {
-            pillBg: '#e9f9ef',
-            pillBorder: '#b8eac8',
-            text: '#1f7a43',
-            dot: '#22c55e',
-            glow: 'rgba(34, 197, 94, 0.32)',
-          },
-          dark: {
-            pillBg: '#0b1a12',
-            pillBorder: '#163724',
-            text: '#74c892',
-            dot: '#2fb15a',
-            glow: 'rgba(47, 177, 90, 0.32)',
-          },
-        },
-        HASISSUES: {
-          label: 'Issues',
-          light: {
-            pillBg: '#fff2df',
-            pillBorder: '#fed7aa',
-            text: '#9a3412',
-            dot: '#f97316',
-            glow: 'rgba(249, 115, 22, 0.32)',
-          },
-          dark: {
-            pillBg: '#2a1608',
-            pillBorder: '#7c2d12',
-            text: '#fdba74',
-            dot: '#f97316',
-            glow: 'rgba(249, 115, 22, 0.32)',
-          },
-        },
-        UNDERMAINTENANCE: {
-          label: 'Maintenance',
-          light: {
-            pillBg: '#eaf1ff',
-            pillBorder: '#bfdbfe',
-            text: '#1e40af',
-            dot: '#3b82f6',
-            glow: 'rgba(59, 130, 246, 0.32)',
-          },
-          dark: {
-            pillBg: '#0f1b38',
-            pillBorder: '#1e3a8a',
-            text: '#93c5fd',
-            dot: '#3b82f6',
-            glow: 'rgba(59, 130, 246, 0.32)',
-          },
-        },
-        DOWN: {
-          label: 'Outage',
-          light: {
-            pillBg: '#feeceb',
-            pillBorder: '#fecaca',
-            text: '#b91c1c',
-            dot: '#ef4444',
-            glow: 'rgba(239, 68, 68, 0.32)',
-          },
-          dark: {
-            pillBg: '#2b0d0d',
-            pillBorder: '#7f1d1d',
-            text: '#fca5a5',
-            dot: '#ef4444',
-            glow: 'rgba(239, 68, 68, 0.32)',
-          },
-        },
-        UNKNOWN: {
-          label: 'Unknown',
-          light: {
-            pillBg: '#f3f4f6',
-            pillBorder: '#d4d4d8',
-            text: '#52525b',
-            dot: '#71717a',
-            glow: 'rgba(113, 113, 122, 0.32)',
-          },
-          dark: {
-            pillBg: '#121212',
-            pillBorder: '#303030',
-            text: '#d4d4d8',
-            dot: '#a1a1aa',
-            glow: 'rgba(161, 161, 170, 0.32)',
-          },
-        },
-      };
+    async function initHomeStatusPill() {
+      const pill = document.getElementById('home-status-pill');
+      if (!pill || pill.dataset.statusLoaded) return;
+      pill.dataset.statusLoaded = '1';
 
-      var currentStatusVisuals = statusMap.UNKNOWN;
+      try {
+        const response = await fetch(
+          'https://paulsavvas.instatus.com/summary.json',
+          { cache: 'no-store' }
+        );
+        if (!response.ok) return;
 
-      function isDarkMode() {
-        return document.documentElement.classList.contains('dark');
+        const data = await response.json();
+        const status = String(data?.page?.status ?? '').toUpperCase();
+        const label = STATUS_LABELS[status];
+        if (!label) return;
+
+        pill.dataset.status = status;
+        const labelEl = pill.querySelector('[data-status-label]');
+        if (labelEl) labelEl.textContent = label;
+      } catch {
+        /* Keep the default state when the status service is unreachable. */
       }
+    }
 
-      function applyStatusVisuals(visuals) {
-        currentStatusVisuals = visuals;
-        var palette = isDarkMode() ? visuals.dark : visuals.light;
-
-        labelEl.textContent = visuals.label;
-        pillEl.style.backgroundColor = palette.pillBg;
-        pillEl.style.borderColor = palette.pillBorder;
-        pillEl.style.color = palette.text;
-        dotEl.style.backgroundColor = palette.dot;
-        dotEl.style.setProperty('--hero-live-dot-glow', palette.glow);
-      }
-
-      function syncStatusVisualTheme() {
-        applyStatusVisuals(currentStatusVisuals);
-      }
-
-      new MutationObserver(function () {
-        syncStatusVisualTheme();
-      }).observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class'],
+    document.addEventListener('astro:page-load', initHomeStatusPill);
+    if (document.readyState !== 'loading') {
+      initHomeStatusPill();
+    } else {
+      document.addEventListener('DOMContentLoaded', initHomeStatusPill, {
+        once: true,
       });
-
-      fetch('https://paulsavvas.instatus.com/summary.json', { cache: 'no-store' })
-        .then(function (response) {
-          if (!response.ok) throw new Error('Status request failed');
-          return response.json();
-        })
-        .then(function (data) {
-          var rawStatus =
-            data && data.page && data.page.status
-              ? String(data.page.status).toUpperCase()
-              : '';
-          applyStatusVisuals(statusMap[rawStatus] || statusMap.UNKNOWN);
-        })
-        .catch(function () {
-          applyStatusVisuals(statusMap.UNKNOWN);
-        });
-    })();
+    }
   </script>
 </BaseLayout>

@@ -1,0 +1,36 @@
+---
+// Thin gradient bar at the top of the viewport showing reading progress.
+// Include on article pages (blog posts, project pages).
+---
+
+<div class="reading-progress" aria-hidden="true">
+  <div class="reading-progress__bar" data-reading-progress-bar></div>
+</div>
+
+<script>
+  function updateReadingProgress() {
+    const bar = document.querySelector<HTMLElement>(
+      '[data-reading-progress-bar]'
+    );
+    if (!bar) return;
+
+    const scrollable =
+      document.documentElement.scrollHeight - window.innerHeight;
+    const progress =
+      scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0;
+    bar.style.transform = `scaleX(${progress})`;
+  }
+
+  if (!(window as any).__psReadingProgressBound) {
+    (window as any).__psReadingProgressBound = true;
+    window.addEventListener('scroll', updateReadingProgress, {
+      passive: true,
+    });
+    window.addEventListener('resize', updateReadingProgress, {
+      passive: true,
+    });
+    document.addEventListener('astro:page-load', updateReadingProgress);
+  }
+
+  updateReadingProgress();
+</script>
