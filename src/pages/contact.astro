@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const pageTitle = 'Contact | Paul Savvas';
@@ -14,8 +16,7 @@ const formUrl = 'https://psavvas.notion.site/15770b9af471809da736d4e77a090ce0';
 
 const cardCls =
   'rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950 hover-lift animate-fade-in-up';
-const actionCls =
-  'site-btn hover-lift';
+const actionCls = 'site-btn hover-lift';
 
 const socialCards = [
   {

@@ -1,0 +1,105 @@
+---
+import '../styles/globals.css';
+
+interface Props {
+  title: string;
+  /** Hide the nav chrome (used by the login page). */
+  bare?: boolean;
+}
+
+const { title, bare = false } = Astro.props;
+
+const navEntries = [
+  { label: 'Dashboard', path: '/admin' },
+  { label: 'Projects', path: '/admin/projects' },
+  { label: 'Blog', path: '/admin/blog' },
+  { label: 'Redirects', path: '/admin/redirects' },
+  { label: 'Now section', path: '/admin/now' },
+];
+
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+
+function isActive(path: string): boolean {
+  if (path === '/admin') return currentPath === '/admin';
+  return currentPath === path || currentPath.startsWith(`${path}/`);
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} | Site Admin</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* Inline theme initialisation — runs before paint to avoid flash */}
+    <script is:inline>
+      (function applyStoredTheme() {
+        var stored = localStorage.getItem('ps-theme');
+        var prefersDark = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches;
+        var useDark = stored === 'dark' || (stored !== 'light' && prefersDark);
+        document.documentElement.classList.toggle('dark', useDark);
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-screen bg-neutral-50 font-sans dark:bg-neutral-950">
+    {
+      !bare && (
+        <header class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
+          <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
+            <a
+              href="/admin"
+              class="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+            >
+              PS{' '}
+              <span class="font-normal text-neutral-500 dark:text-neutral-400">
+                Admin
+              </span>
+            </a>
+
+            <ul class="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {navEntries.map((entry) => (
+                <li>
+                  <a
+                    href={entry.path}
+                    class={`text-sm font-medium transition-colors ${
+                      isActive(entry.path)
+                        ? 'text-neutral-900 dark:text-neutral-100'
+                        : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100'
+                    }`}
+                  >
+                    {entry.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            <div class="ml-auto flex items-center gap-3">
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+              >
+                View site ↗
+              </a>
+              <form method="post" action="/admin/logout">
+                <button type="submit" class="site-btn site-btn--sm hover-lift">
+                  Log out
+                </button>
+              </form>
+            </div>
+          </nav>
+        </header>
+      )
+    }
+
+    <main class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+      <slot />
+    </main>
+  </body>
+</html>

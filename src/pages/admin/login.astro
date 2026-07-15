@@ -1,0 +1,101 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import {
+  isAdminConfigured,
+  setSessionCookie,
+  verifyPassword,
+} from '../../lib/admin-auth';
+
+const configured = isAdminConfigured();
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = String(form.get('password') ?? '');
+
+  if (!configured) {
+    error =
+      'The admin portal is not configured yet — set the ADMIN_PASSWORD environment variable first.';
+  } else if (verifyPassword(password)) {
+    setSessionCookie(Astro.cookies);
+
+    const requested = Astro.url.searchParams.get('next') ?? '/admin';
+    return Astro.redirect(
+      requested.startsWith('/admin') && !requested.startsWith('//')
+        ? requested
+        : '/admin'
+    );
+  } else {
+    error = 'Incorrect password. Please try again.';
+  }
+}
+---
+
+<AdminLayout title="Log in" bare>
+  <div class="mx-auto mt-16 w-full max-w-sm">
+    <div
+      class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+    >
+      <p
+        class="text-sm font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
+      >
+        Site Admin
+      </p>
+      <h1
+        class="mt-2 text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+      >
+        Log in
+      </h1>
+      <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+        Enter the admin password to manage projects, blog posts, redirects, and
+        site content.
+      </p>
+
+      {
+        !configured && (
+          <div class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+            No <code>ADMIN_PASSWORD</code> environment variable is set, so
+            logins are disabled. Add it in your hosting dashboard (e.g. Vercel →
+            Settings → Environment Variables) and redeploy.
+          </div>
+        )
+      }
+
+      {
+        error && configured && (
+          <div class="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+            {error}
+          </div>
+        )
+      }
+
+      <form method="post" class="mt-6 space-y-4">
+        <div>
+          <label
+            for="password"
+            class="block text-sm font-medium text-neutral-900 dark:text-neutral-100"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            autofocus
+            class="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500"
+          />
+        </div>
+
+        <button type="submit" class="site-btn hover-lift w-full justify-center">
+          Log in
+        </button>
+      </form>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-neutral-500 dark:text-neutral-400">
+      <a href="/" class="hover:underline">← Back to paulsavvas.me</a>
+    </p>
+  </div>
+</AdminLayout>

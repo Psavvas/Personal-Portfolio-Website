@@ -1,0 +1,151 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import {
+  adminDeleteRedirect,
+  adminListRedirects,
+  adminSaveRedirect,
+} from '../../../lib/redirects';
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = String(form.get('_action') ?? '');
+
+  try {
+    if (action === 'delete') {
+      const id = String(form.get('id') ?? '');
+      if (id) await adminDeleteRedirect(id);
+      return Astro.redirect('/admin/redirects?deleted=1');
+    }
+
+    if (action === 'save') {
+      await adminSaveRedirect(
+        String(form.get('slug') ?? ''),
+        String(form.get('destination') ?? '')
+      );
+      return Astro.redirect('/admin/redirects?saved=1');
+    }
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+  }
+}
+
+const redirects = await adminListRedirects();
+const saved = Astro.url.searchParams.has('saved');
+const deleted = Astro.url.searchParams.has('deleted');
+
+const inputCls =
+  'mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500';
+const labelCls =
+  'block text-sm font-medium text-neutral-900 dark:text-neutral-100';
+---
+
+<AdminLayout title="Redirects">
+  <header>
+    <h1
+      class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+    >
+      Short links
+    </h1>
+    <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+      paulsavvas.me/redirect/&lt;slug&gt; sends visitors to the destination.
+      Saving an existing slug updates its destination.
+    </p>
+  </header>
+
+  {
+    (saved || deleted) && (
+      <div class="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        {saved ? 'Short link saved.' : 'Short link deleted.'}
+      </div>
+    )
+  }
+
+  {
+    error && (
+      <div class="mt-6 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        {error}
+      </div>
+    )
+  }
+
+  <form
+    method="post"
+    class="mt-8 grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 sm:grid-cols-[1fr_2fr_auto] sm:items-end dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    <input type="hidden" name="_action" value="save" />
+    <div>
+      <label for="slug" class={labelCls}>Slug</label>
+      <input
+        id="slug"
+        name="slug"
+        type="text"
+        required
+        placeholder="contact"
+        class={inputCls}
+      />
+    </div>
+    <div>
+      <label for="destination" class={labelCls}>Destination</label>
+      <input
+        id="destination"
+        name="destination"
+        type="text"
+        required
+        placeholder="https://example.com or /about"
+        class={inputCls}
+      />
+    </div>
+    <button type="submit" class="site-btn hover-lift">Add / update</button>
+  </form>
+
+  <ul
+    class="mt-8 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    {
+      redirects.length === 0 && (
+        <li class="p-6 text-sm text-neutral-500 dark:text-neutral-400">
+          No short links yet.
+        </li>
+      )
+    }
+    {
+      redirects.map((redirect) => (
+        <li class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+              /redirect/{redirect.slug}
+            </p>
+            <p class="mt-1 truncate text-sm text-neutral-600 dark:text-neutral-400">
+              → {redirect.destination}
+            </p>
+          </div>
+          <div class="flex shrink-0 items-center gap-2">
+            <a
+              href={`/redirect/${redirect.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="site-btn site-btn--sm hover-lift"
+            >
+              Test
+            </a>
+            <form
+              method="post"
+              onsubmit={`return confirm('Delete the “${redirect.slug}” short link?')`}
+            >
+              <input type="hidden" name="_action" value="delete" />
+              <input type="hidden" name="id" value={redirect.id} />
+              <button
+                type="submit"
+                class="rounded-md px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</AdminLayout>

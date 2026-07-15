@@ -1,0 +1,197 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { adminListBlogPosts } from '../../lib/blog';
+import { adminListProjects } from '../../lib/projects';
+import { adminListRedirects } from '../../lib/redirects';
+
+let projects: Awaited<ReturnType<typeof adminListProjects>> = [];
+let posts: Awaited<ReturnType<typeof adminListBlogPosts>> = [];
+let redirectCount = 0;
+let dbError = '';
+
+try {
+  [projects, posts] = await Promise.all([
+    adminListProjects(),
+    adminListBlogPosts(),
+  ]);
+  redirectCount = (await adminListRedirects()).length;
+} catch (error) {
+  dbError = error instanceof Error ? error.message : String(error);
+}
+
+const publishedProjects = projects.filter(
+  (p) => p.visibility === 'published'
+).length;
+const publishedPosts = posts.filter((p) => p.visibility === 'published').length;
+
+const recentProjects = projects.slice(0, 5);
+const recentPosts = posts.slice(0, 5);
+
+const cardCls =
+  'rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900';
+const badgeCls: Record<string, string> = {
+  published:
+    'inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+  draft:
+    'inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300',
+};
+---
+
+<AdminLayout title="Dashboard">
+  <header>
+    <h1
+      class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+    >
+      Dashboard
+    </h1>
+    <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+      Manage the content that appears on paulsavvas.me. Changes go live as soon
+      as you save them.
+    </p>
+  </header>
+
+  {
+    dbError && (
+      <div class="mt-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <p class="font-medium">Could not reach the database.</p>
+        <p class="mt-1">{dbError}</p>
+        <p class="mt-2">
+          Check that <code>DATABASE_URL</code> is set and that you have run
+          <code>db/schema.sql</code> in the Neon SQL editor.
+        </p>
+      </div>
+    )
+  }
+
+  <section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <a href="/admin/projects" class={`${cardCls} hover-lift block`}>
+      <p class="text-sm text-neutral-500 dark:text-neutral-400">Projects</p>
+      <p
+        class="mt-1 text-3xl font-semibold text-neutral-900 dark:text-neutral-100"
+      >
+        {projects.length}
+      </p>
+      <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        {publishedProjects} published · {projects.length - publishedProjects} drafts
+      </p>
+    </a>
+    <a href="/admin/blog" class={`${cardCls} hover-lift block`}>
+      <p class="text-sm text-neutral-500 dark:text-neutral-400">Blog posts</p>
+      <p
+        class="mt-1 text-3xl font-semibold text-neutral-900 dark:text-neutral-100"
+      >
+        {posts.length}
+      </p>
+      <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        {publishedPosts} published · {posts.length - publishedPosts} drafts
+      </p>
+    </a>
+    <a href="/admin/redirects" class={`${cardCls} hover-lift block`}>
+      <p class="text-sm text-neutral-500 dark:text-neutral-400">Short links</p>
+      <p
+        class="mt-1 text-3xl font-semibold text-neutral-900 dark:text-neutral-100"
+      >
+        {redirectCount}
+      </p>
+      <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        paulsavvas.me/redirect/…
+      </p>
+    </a>
+    <a href="/admin/now" class={`${cardCls} hover-lift block`}>
+      <p class="text-sm text-neutral-500 dark:text-neutral-400">Now section</p>
+      <p
+        class="mt-1 text-3xl font-semibold text-neutral-900 dark:text-neutral-100"
+      >
+        /about
+      </p>
+      <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        Edit the "Now" blurb
+      </p>
+    </a>
+  </section>
+
+  <section class="mt-8 flex flex-wrap gap-3">
+    <a href="/admin/projects/new" class="site-btn hover-lift">+ New project</a>
+    <a href="/admin/blog/new" class="site-btn hover-lift">+ New blog post</a>
+  </section>
+
+  <section class="mt-10 grid gap-6 lg:grid-cols-2">
+    <div class={cardCls}>
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+        >
+          Recently updated projects
+        </h2>
+        <a
+          href="/admin/projects"
+          class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          View all
+        </a>
+      </div>
+      <ul class="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
+        {
+          recentProjects.length === 0 && (
+            <li class="py-3 text-sm text-neutral-500 dark:text-neutral-400">
+              No projects yet.
+            </li>
+          )
+        }
+        {
+          recentProjects.map((project) => (
+            <li class="flex items-center justify-between gap-3 py-3">
+              <a
+                href={`/admin/projects/${project.id}`}
+                class="min-w-0 truncate text-sm font-medium text-neutral-900 hover:underline dark:text-neutral-100"
+              >
+                {project.title}
+              </a>
+              <span class={badgeCls[project.visibility]}>
+                {project.visibility}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class={cardCls}>
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+        >
+          Recent blog posts
+        </h2>
+        <a
+          href="/admin/blog"
+          class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          View all
+        </a>
+      </div>
+      <ul class="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800">
+        {
+          recentPosts.length === 0 && (
+            <li class="py-3 text-sm text-neutral-500 dark:text-neutral-400">
+              No posts yet.
+            </li>
+          )
+        }
+        {
+          recentPosts.map((post) => (
+            <li class="flex items-center justify-between gap-3 py-3">
+              <a
+                href={`/admin/blog/${post.id}`}
+                class="min-w-0 truncate text-sm font-medium text-neutral-900 hover:underline dark:text-neutral-100"
+              >
+                {post.title}
+              </a>
+              <span class={badgeCls[post.visibility]}>{post.visibility}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</AdminLayout>

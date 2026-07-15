@@ -1,0 +1,6 @@
+---
+import { clearSessionCookie } from '../../lib/admin-auth';
+
+clearSessionCookie(Astro.cookies);
+return Astro.redirect('/admin/login');
+---

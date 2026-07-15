@@ -1,13 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getNowSectionHtml } from '../lib/notion-now';
+import { getNowSectionHtml } from '../lib/site-content';
 
 const pageTitle = 'About | Paul Savvas';
 const pageDesc =
   'About Paul Savvas, student engineer building practical tools across software, hardware, and 3D design.';
 
-const btnClasses =
-  'site-btn hover-lift';
+const btnClasses = 'site-btn hover-lift';
 
 const values = [
   {
@@ -79,11 +78,11 @@ const nowHtml = await getNowSectionHtml();
         <p
           class="mt-4 text-base leading-7 text-neutral-700 dark:text-neutral-300"
         >
-          Most of my projects start with failure: circuits that don't work,
-          code that breaks, prints that warp. I treat those setbacks as data:
-          they show what needs fixing. Through CAD design, programming, and
-          hardware builds, I've learned that progress comes from testing
-          assumptions early and iterating until the solution works reliably.
+          Most of my projects start with failure: circuits that don't work, code
+          that breaks, prints that warp. I treat those setbacks as data: they
+          show what needs fixing. Through CAD design, programming, and hardware
+          builds, I've learned that progress comes from testing assumptions
+          early and iterating until the solution works reliably.
         </p>
         <p
           class="mt-4 text-base leading-7 text-neutral-700 dark:text-neutral-300"

@@ -1,0 +1,211 @@
+---
+import MarkdownEditor from './MarkdownEditor.astro';
+import type { ProjectInput } from '../../lib/projects';
+
+interface Props {
+  values?: Partial<ProjectInput>;
+  blogSlugs: string[];
+  submitLabel: string;
+}
+
+const { values = {}, blogSlugs, submitLabel } = Astro.props;
+
+const inputCls =
+  'mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500';
+const labelCls =
+  'block text-sm font-medium text-neutral-900 dark:text-neutral-100';
+const helpCls = 'mt-1 text-xs text-neutral-500 dark:text-neutral-400';
+---
+
+<form method="post" class="space-y-6" data-project-form>
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <label for="title" class={labelCls}>Title *</label>
+      <input
+        id="title"
+        name="title"
+        type="text"
+        required
+        value={values.title ?? ''}
+        class={inputCls}
+        data-slug-source
+      />
+    </div>
+
+    <div>
+      <label for="slug" class={labelCls}>Slug</label>
+      <input
+        id="slug"
+        name="slug"
+        type="text"
+        value={values.slug ?? ''}
+        placeholder="my-project"
+        class={inputCls}
+        data-slug-target
+      />
+      <p class={helpCls}>
+        Page URL: /projects/&lt;slug&gt;. Left blank, it is generated from the
+        title.
+      </p>
+    </div>
+  </div>
+
+  <div>
+    <label for="summary" class={labelCls}>Summary</label>
+    <textarea id="summary" name="summary" rows="3" class={inputCls}
+      >{values.summary ?? ''}</textarea
+    >
+    <p class={helpCls}>Short description shown on project cards and lists.</p>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-3">
+    <div>
+      <label for="year" class={labelCls}>Year</label>
+      <input
+        id="year"
+        name="year"
+        type="text"
+        value={values.year ?? ''}
+        placeholder="2026"
+        class={inputCls}
+      />
+    </div>
+
+    <div>
+      <label for="tags" class={labelCls}>Tags</label>
+      <input
+        id="tags"
+        name="tags"
+        type="text"
+        value={(values.tags ?? []).join(', ')}
+        placeholder="Software, Hardware, 3D Design"
+        class={inputCls}
+      />
+      <p class={helpCls}>Comma separated.</p>
+    </div>
+
+    <div>
+      <label for="visibility" class={labelCls}>Visibility</label>
+      <select id="visibility" name="visibility" class={inputCls}>
+        <option value="draft" selected={values.visibility !== 'published'}>
+          Draft (hidden)
+        </option>
+        <option value="published" selected={values.visibility === 'published'}>
+          Published
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div
+      class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+    >
+      <label class="flex items-start gap-3">
+        <input
+          type="checkbox"
+          name="featured"
+          checked={values.featured ?? false}
+          class="mt-0.5 h-4 w-4 rounded border-neutral-300"
+        />
+        <span>
+          <span class={labelCls}>Featured</span>
+          <span class={helpCls}>Show in the "Featured Projects" grid.</span>
+        </span>
+      </label>
+    </div>
+
+    <div
+      class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+    >
+      <label class="flex items-start gap-3">
+        <input
+          type="checkbox"
+          name="projectPage"
+          checked={values.projectPage ?? true}
+          class="mt-0.5 h-4 w-4 rounded border-neutral-300"
+        />
+        <span>
+          <span class={labelCls}>Has its own page</span>
+          <span class={helpCls}>
+            When off, the project card links to the external URL below instead
+            of /projects/&lt;slug&gt;.
+          </span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <label for="projectInfoUrl" class={labelCls}>External project URL</label>
+      <input
+        id="projectInfoUrl"
+        name="projectInfoUrl"
+        type="url"
+        value={values.projectInfoUrl ?? ''}
+        placeholder="https://github.com/psavvas/…"
+        class={inputCls}
+      />
+      <p class={helpCls}>Used when "Has its own page" is off.</p>
+    </div>
+
+    <div>
+      <label for="featuredBlog" class={labelCls}>Featured blog post</label>
+      <select id="featuredBlog" name="featuredBlog" class={inputCls}>
+        <option value="">— none —</option>
+        {
+          blogSlugs.map((slug) => (
+            <option value={slug} selected={values.featuredBlog === slug}>
+              {slug}
+            </option>
+          ))
+        }
+      </select>
+      <p class={helpCls}>Shown as a callout at the top of the project page.</p>
+    </div>
+  </div>
+
+  <MarkdownEditor
+    name="bodyMd"
+    label="Project page content (Markdown)"
+    value={values.bodyMd ?? ''}
+    hint="Markdown supported. Links placed ABOVE a --- divider become the button row at the top of the page. Images (![alt](url)) are arranged automatically; YouTube/Vimeo links become embedded players."
+  />
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="site-btn hover-lift">{submitLabel}</button>
+    <a
+      href="/admin/projects"
+      class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+    >
+      Cancel
+    </a>
+  </div>
+</form>
+
+<script>
+  // Auto-fill slug from the title until the user edits the slug manually.
+  document
+    .querySelectorAll<HTMLFormElement>('[data-project-form]')
+    .forEach((form) => {
+      const source = form.querySelector<HTMLInputElement>('[data-slug-source]');
+      const target = form.querySelector<HTMLInputElement>('[data-slug-target]');
+      if (!source || !target) return;
+
+      let touched = target.value.length > 0;
+      target.addEventListener('input', () => {
+        touched = target.value.length > 0;
+      });
+
+      source.addEventListener('input', () => {
+        if (touched) return;
+        target.value = source.value
+          .trim()
+          .toLowerCase()
+          .replace(/['’]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      });
+    });
+</script>

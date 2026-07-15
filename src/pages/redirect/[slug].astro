@@ -1,18 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getNotionRedirectMap } from '../../lib/notion-redirects';
-
-export async function getStaticPaths() {
-  const redirects = await getNotionRedirectMap();
-
-  return Object.keys(redirects).map((key) => ({
-    params: { slug: key },
-  }));
-}
+import { getRedirectDestination } from '../../lib/redirects';
 
 const { slug } = Astro.params;
-const redirects = await getNotionRedirectMap();
-const destination = slug ? redirects[slug] : undefined;
+const destination = slug ? await getRedirectDestination(slug) : undefined;
 
 if (!destination) {
   return Astro.redirect('/404');
@@ -85,7 +76,7 @@ const linkType = isInternal ? 'internal page' : 'external site';
     // Redirect after a brief delay to allow users to see the page
     const REDIRECT_DELAY_MS = 1500;
 
-    // Destination is controlled server-side via Notion database
+    // Destination is controlled server-side via the redirects table
     const scriptElement = document.currentScript;
     const redirectTo = scriptElement?.dataset.destination;
 

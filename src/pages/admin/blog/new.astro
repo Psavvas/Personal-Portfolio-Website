@@ -1,0 +1,66 @@
+---
+import BlogForm from '../../../components/admin/BlogForm.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { adminCreateBlogPost, type BlogPostInput } from '../../../lib/blog';
+import { friendlyDbError, parseBlogPostForm } from '../../../lib/admin-forms';
+import { adminListProjects } from '../../../lib/projects';
+
+let error = '';
+let values: Partial<BlogPostInput> = {};
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  try {
+    values = parseBlogPostForm(form);
+    await adminCreateBlogPost(values as BlogPostInput);
+    return Astro.redirect('/admin/blog?saved=1');
+  } catch (err) {
+    error = friendlyDbError(err);
+    if (!values.title) {
+      values = {
+        title: String(form.get('title') ?? ''),
+        summary: String(form.get('summary') ?? ''),
+        slug: String(form.get('slug') ?? ''),
+        dateIso: String(form.get('dateIso') ?? ''),
+        bodyMd: String(form.get('bodyMd') ?? ''),
+      };
+    }
+  }
+}
+
+const projectSlugs = (await adminListProjects())
+  .filter((project) => Boolean(project.slug))
+  .map((project) => project.slug as string);
+---
+
+<AdminLayout title="New blog post">
+  <header>
+    <a
+      href="/admin/blog"
+      class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+    >
+      ← Back to blog posts
+    </a>
+    <h1
+      class="mt-3 text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+    >
+      New blog post
+    </h1>
+  </header>
+
+  {
+    error && (
+      <div class="mt-6 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        {error}
+      </div>
+    )
+  }
+
+  <div class="mt-8">
+    <BlogForm
+      values={values}
+      projectSlugs={projectSlugs}
+      submitLabel="Create post"
+    />
+  </div>
+</AdminLayout>

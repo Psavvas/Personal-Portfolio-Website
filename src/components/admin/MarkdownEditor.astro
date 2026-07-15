@@ -1,0 +1,142 @@
+---
+interface Props {
+  name: string;
+  label: string;
+  value?: string;
+  rows?: number;
+  hint?: string;
+}
+
+const {
+  name,
+  label,
+  value = '',
+  rows = 18,
+  hint = 'Markdown supported: **bold**, *italic*, # headings, - lists, [links](https://…), ![images](https://…). YouTube/Vimeo links become embedded players.',
+} = Astro.props;
+---
+
+<div class="js-md-editor" data-md-editor>
+  <div class="flex items-center justify-between gap-3">
+    <label
+      for={`md-${name}`}
+      class="block text-sm font-medium text-neutral-900 dark:text-neutral-100"
+    >
+      {label}
+    </label>
+    <div
+      class="inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800"
+      role="tablist"
+    >
+      <button
+        type="button"
+        data-md-tab="write"
+        aria-selected="true"
+        class="rounded-md px-3 py-1 text-xs font-medium text-neutral-900 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-100"
+      >
+        Write
+      </button>
+      <button
+        type="button"
+        data-md-tab="preview"
+        aria-selected="false"
+        class="rounded-md px-3 py-1 text-xs font-medium text-neutral-500 dark:text-neutral-400"
+      >
+        Preview
+      </button>
+    </div>
+  </div>
+
+  <textarea
+    id={`md-${name}`}
+    name={name}
+    rows={rows}
+    data-md-input
+    spellcheck="true"
+    class="mt-2 w-full rounded-xl border border-neutral-200 bg-white p-4 font-mono text-sm leading-6 text-neutral-900 shadow-sm outline-none focus:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-600"
+    >{value}</textarea
+  >
+
+  <div
+    data-md-preview
+    class="prose prose-neutral dark:prose-invert mt-2 hidden max-w-none rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+  </div>
+
+  <p class="mt-2 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+    {hint}
+  </p>
+</div>
+
+<script>
+  function setupEditor(root: HTMLElement) {
+    const input = root.querySelector<HTMLTextAreaElement>('[data-md-input]');
+    const preview = root.querySelector<HTMLElement>('[data-md-preview]');
+    const writeTab = root.querySelector<HTMLButtonElement>(
+      '[data-md-tab="write"]'
+    );
+    const previewTab = root.querySelector<HTMLButtonElement>(
+      '[data-md-tab="preview"]'
+    );
+
+    if (!input || !preview || !writeTab || !previewTab) return;
+
+    const activeCls = [
+      'text-neutral-900',
+      'bg-neutral-100',
+      'dark:bg-neutral-800',
+      'dark:text-neutral-100',
+    ];
+    const inactiveCls = ['text-neutral-500', 'dark:text-neutral-400'];
+
+    function setTabState(
+      active: HTMLButtonElement,
+      inactive: HTMLButtonElement
+    ) {
+      active.classList.add(...activeCls);
+      active.classList.remove(...inactiveCls);
+      active.setAttribute('aria-selected', 'true');
+      inactive.classList.remove(...activeCls);
+      inactive.classList.add(...inactiveCls);
+      inactive.setAttribute('aria-selected', 'false');
+    }
+
+    writeTab.addEventListener('click', () => {
+      preview.classList.add('hidden');
+      input.classList.remove('hidden');
+      setTabState(writeTab, previewTab);
+    });
+
+    previewTab.addEventListener('click', async () => {
+      setTabState(previewTab, writeTab);
+      input.classList.add('hidden');
+      preview.classList.remove('hidden');
+      preview.innerHTML =
+        '<p class="text-sm text-neutral-500 dark:text-neutral-400">Rendering preview…</p>';
+
+      try {
+        const response = await fetch('/admin/api/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markdown: input.value }),
+        });
+
+        if (!response.ok)
+          throw new Error(`Preview failed (${response.status})`);
+
+        const data = await response.json();
+        preview.innerHTML =
+          data.html ||
+          '<p class="text-sm text-neutral-500 dark:text-neutral-400">Nothing to preview yet.</p>';
+      } catch (error) {
+        preview.innerHTML =
+          '<p class="text-sm text-red-600 dark:text-red-400">Could not render the preview. Check your connection and try again.</p>';
+        console.error(error);
+      }
+    });
+  }
+
+  document
+    .querySelectorAll<HTMLElement>('[data-md-editor]')
+    .forEach((editor) => setupEditor(editor));
+</script>
