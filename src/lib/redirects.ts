@@ -31,15 +31,22 @@ export async function getRedirectDestination(
   const slug = normalizeSlug(rawSlug);
   if (!slug) return undefined;
 
-  const sql = getSql();
-  const rows = await sql`
-    select destination from redirects where slug = ${slug} limit 1
-  `;
+  // Never throws: an unreachable database sends visitors to /404 instead of
+  // returning a 500.
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      select destination from redirects where slug = ${slug} limit 1
+    `;
 
-  if (rows.length === 0) return undefined;
+    if (rows.length === 0) return undefined;
 
-  const destination = normalizeDestination(rows[0].destination ?? '');
-  return destination || undefined;
+    const destination = normalizeDestination(rows[0].destination ?? '');
+    return destination || undefined;
+  } catch (error) {
+    console.error('Failed to load redirect from the database.', error);
+    return undefined;
+  }
 }
 
 // ---------------------------------------------------------------------------

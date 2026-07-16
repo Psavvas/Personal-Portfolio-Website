@@ -1,0 +1,19 @@
+---
+interface Props {
+  message: string;
+}
+
+const { message } = Astro.props;
+---
+
+<div
+  class="mt-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+>
+  <p class="font-medium">Could not reach the database.</p>
+  <p class="mt-1">{message}</p>
+  <p class="mt-2">
+    Check that the <code>DATABASE_URL</code> environment variable is set (on Vercel:
+    <em>Settings → Environment Variables</em>, for all environments) and that
+    you have run <code>db/schema.sql</code> in the Neon SQL editor, then redeploy.
+  </p>
+</div>

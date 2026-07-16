@@ -1,6 +1,13 @@
 ---
+import DbErrorNotice from '../../../components/admin/DbErrorNotice.astro';
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { adminDeleteProject, adminListProjects } from '../../../lib/projects';
+import {
+  adminDeleteProject,
+  adminListProjects,
+  type AdminProject,
+} from '../../../lib/projects';
+
+let dbError = '';
 
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
@@ -13,7 +20,12 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const projects = await adminListProjects();
+let projects: AdminProject[] = [];
+try {
+  projects = await adminListProjects();
+} catch (error) {
+  dbError = error instanceof Error ? error.message : String(error);
+}
 const saved = Astro.url.searchParams.has('saved');
 const deleted = Astro.url.searchParams.has('deleted');
 
@@ -40,6 +52,8 @@ const badgeCls: Record<string, string> = {
     </div>
     <a href="/admin/projects/new" class="site-btn hover-lift">+ New project</a>
   </header>
+
+  {dbError && <DbErrorNotice message={dbError} />}
 
   {
     (saved || deleted) && (

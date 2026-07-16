@@ -1,4 +1,5 @@
 ---
+import DbErrorNotice from '../../components/admin/DbErrorNotice.astro';
 import MarkdownEditor from '../../components/admin/MarkdownEditor.astro';
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import {
@@ -7,6 +8,7 @@ import {
 } from '../../lib/site-content';
 
 let error = '';
+let dbError = '';
 
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
@@ -18,7 +20,13 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const bodyMd = await adminGetNowMarkdown();
+let bodyMd = '';
+try {
+  bodyMd = await adminGetNowMarkdown();
+} catch (err) {
+  dbError = err instanceof Error ? err.message : String(err);
+}
+
 const saved = Astro.url.searchParams.has('saved');
 ---
 
@@ -44,6 +52,8 @@ const saved = Astro.url.searchParams.has('saved');
       View About page ↗
     </a>
   </header>
+
+  {dbError && <DbErrorNotice message={dbError} />}
 
   {
     saved && (

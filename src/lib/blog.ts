@@ -71,34 +71,46 @@ function toAdminBlogPost(row: any): AdminBlogPost {
 }
 
 export async function getPublishedBlogPosts(): Promise<BlogPost[]> {
-  const sql = getSql();
-  const rows = await sql`
-    select id, title, slug, summary, tags, featured_project_slug,
-           to_char(published_on, 'YYYY-MM-DD') as date_iso
-    from blog_posts
-    where visibility = 'published'
-    order by published_on desc, created_at desc
-  `;
-  return rows.map(toBlogPost);
+  // Public getters never throw: if the database is missing or unreachable
+  // the site renders with empty content instead of a 500.
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      select id, title, slug, summary, tags, featured_project_slug,
+             to_char(published_on, 'YYYY-MM-DD') as date_iso
+      from blog_posts
+      where visibility = 'published'
+      order by published_on desc, created_at desc
+    `;
+    return rows.map(toBlogPost);
+  } catch (error) {
+    console.error('Failed to load blog posts from the database.', error);
+    return [];
+  }
 }
 
 export async function getBlogPostBySlug(
   slug: string
 ): Promise<BlogPost | undefined> {
-  const sql = getSql();
-  const rows = await sql`
-    select id, title, slug, summary, tags, featured_project_slug, body_md,
-           to_char(published_on, 'YYYY-MM-DD') as date_iso
-    from blog_posts
-    where visibility = 'published' and slug = ${slug}
-    limit 1
-  `;
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      select id, title, slug, summary, tags, featured_project_slug, body_md,
+             to_char(published_on, 'YYYY-MM-DD') as date_iso
+      from blog_posts
+      where visibility = 'published' and slug = ${slug}
+      limit 1
+    `;
 
-  if (rows.length === 0) return undefined;
+    if (rows.length === 0) return undefined;
 
-  const post = toBlogPost(rows[0]);
-  post.bodyHtml = renderMarkdown(rows[0].body_md ?? '');
-  return post;
+    const post = toBlogPost(rows[0]);
+    post.bodyHtml = renderMarkdown(rows[0].body_md ?? '');
+    return post;
+  } catch (error) {
+    console.error('Failed to load blog post from the database.', error);
+    return undefined;
+  }
 }
 
 // ---------------------------------------------------------------------------

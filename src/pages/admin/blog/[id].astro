@@ -31,7 +31,9 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const post = await adminGetBlogPost(id);
+// If the database is unreachable, fall back to the list page, which shows
+// setup instructions.
+const post = await adminGetBlogPost(id).catch(() => undefined);
 if (!post) {
   return Astro.redirect('/admin/blog');
 }
@@ -48,9 +50,13 @@ const values: Partial<BlogPostInput> = {
   ...(overrides ?? {}),
 };
 
-const projectSlugs = (await adminListProjects())
-  .filter((project) => Boolean(project.slug))
-  .map((project) => project.slug as string);
+const projectSlugs = await adminListProjects()
+  .then((projects) =>
+    projects
+      .filter((project) => Boolean(project.slug))
+      .map((project) => project.slug as string)
+  )
+  .catch(() => [] as string[]);
 ---
 
 <AdminLayout title={`Edit: ${post.title}`}>

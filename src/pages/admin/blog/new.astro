@@ -28,9 +28,15 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const projectSlugs = (await adminListProjects())
-  .filter((project) => Boolean(project.slug))
-  .map((project) => project.slug as string);
+// The slug dropdown is a convenience — render the form even if the DB is
+// unreachable (saving will surface the real error).
+const projectSlugs = await adminListProjects()
+  .then((projects) =>
+    projects
+      .filter((project) => Boolean(project.slug))
+      .map((project) => project.slug as string)
+  )
+  .catch(() => [] as string[]);
 ---
 
 <AdminLayout title="New blog post">

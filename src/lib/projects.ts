@@ -98,16 +98,24 @@ function sortProjects(projects: ProjectRecord[]): ProjectRecord[] {
   });
 }
 
+// Public getters never throw: if the database is missing or unreachable the
+// site renders with empty content instead of a 500. The failure is logged
+// (visible in Vercel's function logs) and surfaced in the /admin dashboard.
 export async function getPublishedProjects(): Promise<ProjectRecord[]> {
-  const sql = getSql();
-  const rows = await sql`
-    select id, title, summary, slug, tags, year, featured, has_page,
-           project_info_url, featured_blog_slug
-    from projects
-    where visibility = 'published'
-  `;
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      select id, title, summary, slug, tags, year, featured, has_page,
+             project_info_url, featured_blog_slug
+      from projects
+      where visibility = 'published'
+    `;
 
-  return sortProjects(rows.map(toProjectRecord));
+    return sortProjects(rows.map(toProjectRecord));
+  } catch (error) {
+    console.error('Failed to load projects from the database.', error);
+    return [];
+  }
 }
 
 export async function getPublishedProjectPages(): Promise<ProjectRecord[]> {
@@ -120,24 +128,29 @@ export async function getPublishedProjectPages(): Promise<ProjectRecord[]> {
 export async function getProjectBySlug(
   slug: string
 ): Promise<ProjectRecord | undefined> {
-  const sql = getSql();
-  const rows = await sql`
-    select id, title, summary, slug, tags, year, featured, has_page,
-           project_info_url, featured_blog_slug, body_md
-    from projects
-    where visibility = 'published' and has_page = true and slug = ${slug}
-    limit 1
-  `;
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      select id, title, summary, slug, tags, year, featured, has_page,
+             project_info_url, featured_blog_slug, body_md
+      from projects
+      where visibility = 'published' and has_page = true and slug = ${slug}
+      limit 1
+    `;
 
-  if (rows.length === 0) return undefined;
+    if (rows.length === 0) return undefined;
 
-  const project = toProjectRecord(rows[0]);
-  const html = renderMarkdown(rows[0].body_md ?? '');
-  const { topLinksHtml, bodyHtml } = splitProjectHtml(html);
-  project.topLinksHtml = topLinksHtml;
-  project.bodyHtml = bodyHtml;
+    const project = toProjectRecord(rows[0]);
+    const html = renderMarkdown(rows[0].body_md ?? '');
+    const { topLinksHtml, bodyHtml } = splitProjectHtml(html);
+    project.topLinksHtml = topLinksHtml;
+    project.bodyHtml = bodyHtml;
 
-  return project;
+    return project;
+  } catch (error) {
+    console.error('Failed to load project from the database.', error);
+    return undefined;
+  }
 }
 
 export function getProjectDestination(
