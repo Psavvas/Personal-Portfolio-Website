@@ -6,7 +6,7 @@ import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://paulsavvas.me',
+  site: 'https://paulsavvas.com',
   // Server output: content pages read from Neon Postgres on each request, so
   // edits made in the /admin portal appear immediately without a rebuild.
   // Pages that never touch the database opt back in to prerendering with

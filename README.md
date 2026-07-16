@@ -33,7 +33,7 @@ Log in at `/admin` with `ADMIN_PASSWORD`. From there you can:
 
 - **Projects** — create, edit, publish/unpublish, and delete projects. Page content is written in Markdown; links placed above a `---` divider become the button row at the top of the project page.
 - **Blog** — write posts in Markdown with live preview, tags, publish dates, and an optional featured project.
-- **Redirects** — manage `paulsavvas.me/redirect/<slug>` short links.
+- **Redirects** — manage `paulsavvas.com/redirect/<slug>` short links.
 - **Now section** — edit the Markdown blurb shown on the About page.
 
 Markdown extras: `![alt](url)` images are laid out automatically (pairs become a two-column grid), and YouTube/Vimeo links become embedded players.

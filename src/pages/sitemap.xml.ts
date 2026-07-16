@@ -5,7 +5,7 @@ import { getPublishedProjectPages } from '../lib/projects';
 // Dynamic sitemap: project and blog routes live in the database, so the
 // build-time sitemap integration can't see them.
 export const GET: APIRoute = async ({ site }) => {
-  const origin = (site?.href ?? 'https://paulsavvas.me/').replace(/\/+$/, '');
+  const origin = (site?.href ?? 'https://paulsavvas.com/').replace(/\/+$/, '');
 
   const paths = ['/', '/about', '/projects', '/blog', '/contact'];
 

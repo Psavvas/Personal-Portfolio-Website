@@ -1,5 +1,5 @@
 -- ============================================================
--- paulsavvas.me — site database schema
+-- paulsavvas.com — site database schema
 --
 -- HOW TO RUN:
 --   1. Open your Neon project (https://console.neon.tech)
@@ -57,7 +57,7 @@ create table if not exists blog_posts (
 );
 
 -- ------------------------------------------------------------
--- Short links  (paulsavvas.me/redirect/<slug> -> destination)
+-- Short links  (paulsavvas.com/redirect/<slug> -> destination)
 -- ------------------------------------------------------------
 create table if not exists redirects (
   id          uuid primary key default gen_random_uuid(),
@@ -137,7 +137,7 @@ values (
   '2026',
   false,
   true,
-  E'[View on GitHub](https://github.com/psavvas)\n\n---\n\n## About this project\n\nThis is **Markdown**. Links above the `---` divider become the button row at the top of the page.\n\n- Bullet lists work\n- So do [links](https://paulsavvas.me), images, and YouTube embeds\n\n![Example image](https://github.com/psavvas.png)',
+  E'[View on GitHub](https://github.com/psavvas)\n\n---\n\n## About this project\n\nThis is **Markdown**. Links above the `---` divider become the button row at the top of the page.\n\n- Bullet lists work\n- So do [links](https://paulsavvas.com), images, and YouTube embeds\n\n![Example image](https://github.com/psavvas.png)',
   'draft'
 )
 on conflict (slug) do nothing;

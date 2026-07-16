@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "paulsavvas.me",
+      "name": "paulsavvas.com",
       "dependencies": {
         "@astrojs/mdx": "7.0.0",
         "@astrojs/react": "6.0.0",
