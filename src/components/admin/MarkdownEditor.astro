@@ -17,33 +17,65 @@ const {
 ---
 
 <div class="js-md-editor" data-md-editor>
-  <div class="flex items-center justify-between gap-3">
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <label
       for={`md-${name}`}
       class="block text-sm font-medium text-neutral-900 dark:text-neutral-100"
     >
       {label}
     </label>
-    <div
-      class="inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800"
-      role="tablist"
-    >
+
+    <div class="flex items-center gap-2">
       <button
         type="button"
-        data-md-tab="write"
-        aria-selected="true"
-        class="rounded-md px-3 py-1 text-xs font-medium text-neutral-900 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-100"
+        data-md-upload-btn
+        class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:text-neutral-900 dark:border-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
       >
-        Write
+        <svg
+          class="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 16.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1.5Zm0 0 4.5-4.5a1.5 1.5 0 0 1 2.1 0l5.4 5.4M14 13.5l1.9-1.9a1.5 1.5 0 0 1 2.1 0L20 13.5M15 8.5h.01"
+          ></path>
+        </svg>
+        Insert image
       </button>
-      <button
-        type="button"
-        data-md-tab="preview"
-        aria-selected="false"
-        class="rounded-md px-3 py-1 text-xs font-medium text-neutral-500 dark:text-neutral-400"
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        class="hidden"
+        data-md-upload-input
+      />
+
+      <div
+        class="inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800"
+        role="tablist"
       >
-        Preview
-      </button>
+        <button
+          type="button"
+          data-md-tab="write"
+          aria-selected="true"
+          class="rounded-md px-3 py-1 text-xs font-medium text-neutral-900 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-100"
+        >
+          Write
+        </button>
+        <button
+          type="button"
+          data-md-tab="preview"
+          aria-selected="false"
+          class="rounded-md px-3 py-1 text-xs font-medium text-neutral-500 dark:text-neutral-400"
+        >
+          Preview
+        </button>
+      </div>
     </div>
   </div>
 
@@ -63,8 +95,11 @@ const {
   >
   </div>
 
+  <p data-md-status class="mt-2 hidden text-xs leading-5"></p>
+
   <p class="mt-2 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
-    {hint}
+    {hint} You can also paste or drag &amp; drop images straight into the editor —
+    they upload to UploadThing automatically.
   </p>
 </div>
 
@@ -78,6 +113,13 @@ const {
     const previewTab = root.querySelector<HTMLButtonElement>(
       '[data-md-tab="preview"]'
     );
+    const uploadBtn = root.querySelector<HTMLButtonElement>(
+      '[data-md-upload-btn]'
+    );
+    const uploadInput = root.querySelector<HTMLInputElement>(
+      '[data-md-upload-input]'
+    );
+    const status = root.querySelector<HTMLElement>('[data-md-status]');
 
     if (!input || !preview || !writeTab || !previewTab) return;
 
@@ -132,6 +174,110 @@ const {
         preview.innerHTML =
           '<p class="text-sm text-red-600 dark:text-red-400">Could not render the preview. Check your connection and try again.</p>';
         console.error(error);
+      }
+    });
+
+    // ── Image uploads (button, paste, drag & drop) ──
+
+    function setStatus(message: string, isError = false) {
+      if (!status) return;
+      status.textContent = message;
+      status.classList.toggle('hidden', !message);
+      status.classList.toggle('text-red-600', isError);
+      status.classList.toggle('dark:text-red-400', isError);
+      status.classList.toggle('text-neutral-500', !isError);
+      status.classList.toggle('dark:text-neutral-400', !isError);
+    }
+
+    function insertAtCursor(text: string) {
+      const start = input!.selectionStart ?? input!.value.length;
+      const end = input!.selectionEnd ?? start;
+      const before = input!.value.slice(0, start);
+      const after = input!.value.slice(end);
+
+      const needsLeadingBreak = before.length > 0 && !before.endsWith('\n');
+      const insertion = `${needsLeadingBreak ? '\n' : ''}${text}\n`;
+
+      input!.value = before + insertion + after;
+      const cursor = before.length + insertion.length;
+      input!.setSelectionRange(cursor, cursor);
+      input!.focus();
+      input!.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    async function uploadImages(files: File[]) {
+      const images = files.filter((file) => file.type.startsWith('image/'));
+      if (images.length === 0) return;
+
+      if (uploadBtn) uploadBtn.disabled = true;
+      setStatus(
+        images.length === 1
+          ? `Uploading “${images[0].name}”…`
+          : `Uploading ${images.length} images…`
+      );
+
+      try {
+        const body = new FormData();
+        images.forEach((image) => body.append('files', image));
+
+        const response = await fetch('/admin/api/upload', {
+          method: 'POST',
+          body,
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || `Upload failed (${response.status})`);
+        }
+
+        for (const file of data.files ?? []) {
+          const alt = String(file.name || 'Image').replace(/\.[a-z0-9]+$/i, '');
+          insertAtCursor(`![${alt}](${file.url})`);
+        }
+
+        setStatus(
+          data.files?.length === 1
+            ? 'Image uploaded and inserted.'
+            : `${data.files?.length ?? 0} images uploaded and inserted.`
+        );
+      } catch (error) {
+        setStatus(
+          error instanceof Error ? error.message : 'Upload failed.',
+          true
+        );
+        console.error(error);
+      } finally {
+        if (uploadBtn) uploadBtn.disabled = false;
+      }
+    }
+
+    if (uploadBtn && uploadInput) {
+      uploadBtn.addEventListener('click', () => uploadInput.click());
+      uploadInput.addEventListener('change', () => {
+        uploadImages(Array.from(uploadInput.files ?? []));
+        uploadInput.value = '';
+      });
+    }
+
+    input.addEventListener('paste', (event) => {
+      const files = Array.from(event.clipboardData?.files ?? []);
+      if (files.some((file) => file.type.startsWith('image/'))) {
+        event.preventDefault();
+        uploadImages(files);
+      }
+    });
+
+    input.addEventListener('dragover', (event) => {
+      if (event.dataTransfer?.types.includes('Files')) {
+        event.preventDefault();
+      }
+    });
+
+    input.addEventListener('drop', (event) => {
+      const files = Array.from(event.dataTransfer?.files ?? []);
+      if (files.some((file) => file.type.startsWith('image/'))) {
+        event.preventDefault();
+        uploadImages(files);
       }
     });
   }

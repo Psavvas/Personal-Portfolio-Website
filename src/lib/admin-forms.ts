@@ -56,6 +56,7 @@ export function parseProjectForm(form: FormData): ProjectInput {
     tags: parseTags(text(form, 'tags')),
     year: optionalText(form, 'year'),
     featured: checkbox(form, 'featured'),
+    aiBuilt: checkbox(form, 'aiBuilt'),
     projectPage,
     projectInfoUrl: optionalText(form, 'projectInfoUrl'),
     featuredBlog: optionalText(form, 'featuredBlog'),

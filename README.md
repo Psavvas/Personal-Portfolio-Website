@@ -21,11 +21,12 @@ Then open <http://localhost:4321>. The admin portal is at <http://localhost:4321
 
 ## Environment variables
 
-| Variable         | Required | Purpose                                                          |
-| ---------------- | -------- | ---------------------------------------------------------------- |
-| `DATABASE_URL`   | yes      | Neon Postgres connection string                                  |
-| `ADMIN_PASSWORD` | yes      | Password for the `/admin` portal                                 |
-| `SESSION_SECRET` | no       | Signs admin session cookies (derived from the password if unset) |
+| Variable            | Required | Purpose                                                              |
+| ------------------- | -------- | -------------------------------------------------------------------- |
+| `DATABASE_URL`      | yes      | Neon Postgres connection string                                      |
+| `ADMIN_PASSWORD`    | yes      | Password for the `/admin` portal                                     |
+| `SESSION_SECRET`    | no       | Signs admin session cookies (derived from the password if unset)     |
+| `UPLOADTHING_TOKEN` | no       | Enables image uploads from the admin editor (UploadThing → API Keys) |
 
 ## Admin portal
 
@@ -37,6 +38,10 @@ Log in at `/admin` with `ADMIN_PASSWORD`. From there you can:
 - **Now section** — edit the Markdown blurb shown on the About page.
 
 Markdown extras: `![alt](url)` images are laid out automatically (pairs become a two-column grid), and YouTube/Vimeo links become embedded players.
+
+With `UPLOADTHING_TOKEN` set, the Markdown editor gets an **Insert image** button, and you can also paste or drag & drop images directly into the editor — they upload to UploadThing and the Markdown is inserted at the cursor.
+
+Projects have a **Built with AI** checkbox for fully AI-generated ("vibe-coded") work — it adds a "✦ Built with AI" badge on project cards and an honest one-liner on the project page.
 
 Everything saves straight to Postgres and appears on the live site immediately — no rebuild needed. New items start as **drafts**; flip visibility to **published** when ready.
 

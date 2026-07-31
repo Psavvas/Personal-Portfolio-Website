@@ -97,7 +97,7 @@ const helpCls = 'mt-1 text-xs text-neutral-500 dark:text-neutral-400';
     </div>
   </div>
 
-  <div class="grid gap-6 md:grid-cols-2">
+  <div class="grid gap-6 md:grid-cols-3">
     <div
       class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
     >
@@ -111,6 +111,26 @@ const helpCls = 'mt-1 text-xs text-neutral-500 dark:text-neutral-400';
         <span>
           <span class={labelCls}>Featured</span>
           <span class={helpCls}>Show in the "Featured Projects" grid.</span>
+        </span>
+      </label>
+    </div>
+
+    <div
+      class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+    >
+      <label class="flex items-start gap-3">
+        <input
+          type="checkbox"
+          name="aiBuilt"
+          checked={values.aiBuilt ?? false}
+          class="mt-0.5 h-4 w-4 rounded border-neutral-300"
+        />
+        <span>
+          <span class={labelCls}>Built with AI</span>
+          <span class={helpCls}>
+            For fully AI-generated ("vibe-coded") projects. Shows a "✦ Built
+            with AI" badge on the site.
+          </span>
         </span>
       </label>
     </div>

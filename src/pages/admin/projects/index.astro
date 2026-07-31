@@ -92,6 +92,11 @@ const badgeCls: Record<string, string> = {
                   featured
                 </span>
               )}
+              {project.aiBuilt && (
+                <span class="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-[11px] font-medium text-violet-800 dark:bg-violet-950 dark:text-violet-300">
+                  ✦ AI
+                </span>
+              )}
             </div>
             <p class="mt-1 truncate text-sm text-neutral-600 dark:text-neutral-400">
               {project.year && <span>{project.year} · </span>}

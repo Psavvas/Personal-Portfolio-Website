@@ -24,6 +24,9 @@ create table if not exists projects (
   tags               text[] not null default '{}',
   year               text,
   featured           boolean not null default false,
+  -- Project was built end-to-end with AI ("vibe-coded"); shows a
+  -- "✦ Built with AI" badge on the site.
+  ai_built           boolean not null default false,
   -- true  -> project gets its own page at /projects/<slug> (body_md is shown)
   -- false -> project card links out to project_info_url instead
   has_page           boolean not null default true,
@@ -75,6 +78,12 @@ create table if not exists site_content (
   body_md    text not null default '',
   updated_at timestamptz not null default now()
 );
+
+-- ------------------------------------------------------------
+-- Upgrades for databases created by earlier versions of this
+-- script (each statement is safe to re-run)
+-- ------------------------------------------------------------
+alter table projects add column if not exists ai_built boolean not null default false;
 
 -- ------------------------------------------------------------
 -- Keep updated_at fresh automatically

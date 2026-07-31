@@ -8,6 +8,7 @@ export interface ProjectRecord {
   tags: string[];
   year?: string;
   featured: boolean;
+  aiBuilt: boolean;
   projectPage: boolean;
   slug?: string;
   projectInfoUrl?: string;
@@ -34,6 +35,7 @@ export interface ProjectInput {
   tags: string[];
   year?: string;
   featured: boolean;
+  aiBuilt: boolean;
   projectPage: boolean;
   projectInfoUrl?: string;
   featuredBlog?: string;
@@ -49,6 +51,7 @@ function toProjectRecord(row: any): ProjectRecord {
     tags: row.tags ?? [],
     year: row.year ?? undefined,
     featured: Boolean(row.featured),
+    aiBuilt: Boolean(row.ai_built),
     projectPage: Boolean(row.has_page),
     slug: row.slug ?? undefined,
     projectInfoUrl: row.project_info_url ?? undefined,
@@ -105,7 +108,7 @@ export async function getPublishedProjects(): Promise<ProjectRecord[]> {
   try {
     const sql = getSql();
     const rows = await sql`
-      select id, title, summary, slug, tags, year, featured, has_page,
+      select id, title, summary, slug, tags, year, featured, ai_built, has_page,
              project_info_url, featured_blog_slug
       from projects
       where visibility = 'published'
@@ -131,7 +134,7 @@ export async function getProjectBySlug(
   try {
     const sql = getSql();
     const rows = await sql`
-      select id, title, summary, slug, tags, year, featured, has_page,
+      select id, title, summary, slug, tags, year, featured, ai_built, has_page,
              project_info_url, featured_blog_slug, body_md
       from projects
       where visibility = 'published' and has_page = true and slug = ${slug}
@@ -203,11 +206,11 @@ export async function adminCreateProject(input: ProjectInput): Promise<string> {
   const sql = getSql();
   const rows = await sql`
     insert into projects
-      (title, summary, slug, tags, year, featured, has_page,
+      (title, summary, slug, tags, year, featured, ai_built, has_page,
        project_info_url, featured_blog_slug, body_md, visibility)
     values
       (${input.title}, ${input.summary}, ${input.slug ?? null}, ${input.tags},
-       ${input.year ?? null}, ${input.featured}, ${input.projectPage},
+       ${input.year ?? null}, ${input.featured}, ${input.aiBuilt}, ${input.projectPage},
        ${input.projectInfoUrl ?? null}, ${input.featuredBlog ?? null},
        ${input.bodyMd}, ${input.visibility})
     returning id
@@ -228,6 +231,7 @@ export async function adminUpdateProject(
       tags = ${input.tags},
       year = ${input.year ?? null},
       featured = ${input.featured},
+      ai_built = ${input.aiBuilt},
       has_page = ${input.projectPage},
       project_info_url = ${input.projectInfoUrl ?? null},
       featured_blog_slug = ${input.featuredBlog ?? null},
