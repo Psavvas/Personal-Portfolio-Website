@@ -1,0 +1,109 @@
+---
+// Small, click-to-reveal disclosure for projects built entirely with AI.
+// Kept out of project cards/lists on purpose — it only appears on the
+// project's own page, where the full context (and the "why") lives.
+const panelId = `ai-disclosure-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<span class="relative inline-block" data-ai-disclosure>
+  <button
+    type="button"
+    data-ai-disclosure-trigger
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-controls={panelId}
+    class="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+  >
+    <svg
+      class="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M12 8v.01M11.25 11h.75v5h.75M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"
+      ></path>
+    </svg>
+    Created entirely with AI
+  </button>
+
+  <div
+    id={panelId}
+    data-ai-disclosure-panel
+    role="dialog"
+    aria-label="Why this is disclosed"
+    class="absolute left-0 top-full z-20 mt-2 hidden w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-neutral-200 bg-white p-4 text-left shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    <p class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+      Why I disclose this
+    </p>
+    <p class="mt-2 text-xs leading-5 text-neutral-600 dark:text-neutral-400">
+      This project was created entirely with artificial intelligence — I
+      directed, reviewed, and tested the work, but AI wrote the implementation.
+      I believe that's worth stating plainly: presenting AI-generated work as if
+      it were written by hand misrepresents the effort behind it, and
+      transparency lets you judge the project on its actual merits.
+    </p>
+    <button
+      type="button"
+      data-ai-disclosure-close
+      class="mt-3 text-xs font-medium text-neutral-500 underline hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+    >
+      Close
+    </button>
+  </div>
+</span>
+
+<script>
+  function setupDisclosure(root: HTMLElement) {
+    const trigger = root.querySelector<HTMLButtonElement>(
+      '[data-ai-disclosure-trigger]'
+    );
+    const panel = root.querySelector<HTMLElement>('[data-ai-disclosure-panel]');
+    const closeBtn = root.querySelector<HTMLButtonElement>(
+      '[data-ai-disclosure-close]'
+    );
+
+    if (!trigger || !panel || !closeBtn) return;
+
+    function setOpen(open: boolean) {
+      panel!.classList.toggle('hidden', !open);
+      trigger!.setAttribute('aria-expanded', String(open));
+      if (open) {
+        document.addEventListener('click', onOutsideClick, true);
+        document.addEventListener('keydown', onKeydown);
+      } else {
+        document.removeEventListener('click', onOutsideClick, true);
+        document.removeEventListener('keydown', onKeydown);
+      }
+    }
+
+    function onOutsideClick(event: MouseEvent) {
+      if (!root.contains(event.target as Node)) setOpen(false);
+    }
+
+    function onKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        trigger!.focus();
+      }
+    }
+
+    trigger.addEventListener('click', () => {
+      setOpen(panel!.classList.contains('hidden'));
+    });
+
+    closeBtn.addEventListener('click', () => {
+      setOpen(false);
+      trigger!.focus();
+    });
+  }
+
+  document
+    .querySelectorAll<HTMLElement>('[data-ai-disclosure]')
+    .forEach((el) => setupDisclosure(el));
+</script>
