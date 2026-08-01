@@ -2,6 +2,13 @@
 // Small, click-to-reveal disclosure for projects built entirely with AI.
 // Kept out of project cards/lists on purpose — it only appears on the
 // project's own page, where the full context (and the "why") lives.
+//
+// Rendered via the native Popover API (top layer) rather than a
+// position:absolute + z-index box: the project header this lives in has a
+// CSS entrance animation (opacity/transform), which creates its own
+// stacking context and traps any z-index inside it — a plain absolute
+// popover would then render *behind* later page content (e.g. the article
+// body) instead of on top of it. The top layer sidesteps that entirely.
 const panelId = `ai-disclosure-${Math.random().toString(36).slice(2, 9)}`;
 ---
 
@@ -33,20 +40,25 @@ const panelId = `ai-disclosure-${Math.random().toString(36).slice(2, 9)}`;
 
   <div
     id={panelId}
+    popover="auto"
     data-ai-disclosure-panel
     role="dialog"
     aria-label="Why this is disclosed"
-    class="absolute left-0 top-full z-20 mt-2 hidden w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-neutral-200 bg-white p-4 text-left shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+    class="m-0 w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-neutral-200 bg-white p-4 text-left shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
   >
     <p class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
       Why I disclose this
     </p>
     <p class="mt-2 text-xs leading-5 text-neutral-600 dark:text-neutral-400">
-      This project was create entirely with Artificial Intelligence (AI). While I conceived the idea and directed, reviewed and tested the project, 
-      AI created and developed the finish product. I believe that combining AI with an individual's workflow can enable powerful new ideas and projects, 
-      yet it's still important to remain transparent about its usage, especially when it's responsible for the entirety of the development. Presenting 
-      AI-generated work as if it were written by hand can misrepresent the effort behind it, and transparency lets you judge the project on its actual 
-      merits.
+      This project was create entirely with Artificial Intelligence (AI). While
+      I conceived the idea and directed, reviewed and tested the project, AI
+      created and developed the finish product. I believe that combining AI with
+      an individual's workflow can enable powerful new ideas and projects, yet
+      it's still important to remain transparent about its usage, especially
+      when it's responsible for the entirety of the development. Presenting
+      AI-generated work as if it were written by hand can misrepresent the
+      effort behind it, and transparency lets you judge the project on its
+      actual merits.
     </p>
     <button
       type="button"
@@ -70,37 +82,80 @@ const panelId = `ai-disclosure-${Math.random().toString(36).slice(2, 9)}`;
 
     if (!trigger || !panel || !closeBtn) return;
 
-    function setOpen(open: boolean) {
-      panel!.classList.toggle('hidden', !open);
-      trigger!.setAttribute('aria-expanded', String(open));
-      if (open) {
-        document.addEventListener('click', onOutsideClick, true);
-        document.addEventListener('keydown', onKeydown);
+    // Popover API (top layer) is supported in every current evergreen
+    // browser; the class-toggle fallback below covers anything older.
+    const supportsPopover = typeof (panel as any).showPopover === 'function';
+    if (!supportsPopover) panel.classList.add('hidden');
+
+    function isOpen(): boolean {
+      return supportsPopover
+        ? panel!.matches(':popover-open')
+        : !panel!.classList.contains('hidden');
+    }
+
+    function positionPanel() {
+      const triggerRect = trigger!.getBoundingClientRect();
+      const panelRect = panel!.getBoundingClientRect();
+      const margin = 16;
+      const maxLeft = window.innerWidth - panelRect.width - margin;
+      const left = Math.max(margin, Math.min(triggerRect.left, maxLeft));
+      panel!.style.left = `${left}px`;
+      panel!.style.top = `${triggerRect.bottom + 8}px`;
+    }
+
+    function open() {
+      if (supportsPopover) {
+        (panel as any).showPopover();
+        positionPanel();
       } else {
-        document.removeEventListener('click', onOutsideClick, true);
-        document.removeEventListener('keydown', onKeydown);
+        panel!.classList.remove('hidden');
       }
+      trigger!.setAttribute('aria-expanded', 'true');
     }
 
-    function onOutsideClick(event: MouseEvent) {
-      if (!root.contains(event.target as Node)) setOpen(false);
-    }
-
-    function onKeydown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        trigger!.focus();
+    function close() {
+      if (supportsPopover) {
+        (panel as any).hidePopover();
+      } else {
+        panel!.classList.add('hidden');
       }
+      trigger!.setAttribute('aria-expanded', 'false');
     }
 
     trigger.addEventListener('click', () => {
-      setOpen(panel!.classList.contains('hidden'));
+      if (isOpen()) close();
+      else open();
     });
 
     closeBtn.addEventListener('click', () => {
-      setOpen(false);
+      close();
       trigger!.focus();
     });
+
+    if (supportsPopover) {
+      // Keeps aria-expanded correct even when the browser's built-in
+      // light-dismiss (outside click / Escape) closes the popover for us.
+      panel.addEventListener('toggle', (event: any) => {
+        trigger!.setAttribute(
+          'aria-expanded',
+          String(event.newState === 'open')
+        );
+      });
+    } else {
+      document.addEventListener(
+        'click',
+        (event) => {
+          if (isOpen() && !root.contains(event.target as Node)) close();
+        },
+        true
+      );
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isOpen()) {
+          close();
+          trigger!.focus();
+        }
+      });
+    }
   }
 
   document
