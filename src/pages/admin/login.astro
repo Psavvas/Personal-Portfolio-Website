@@ -1,24 +1,9 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import {
-  getAuth,
-  getAuthConfigError,
-  hasAnyUser,
-  isAuthConfigured,
-} from '../../lib/auth';
+import { getAuth, getAuthConfigError, isAuthConfigured } from '../../lib/auth';
 
 const configured = isAuthConfigured();
 const configError = getAuthConfigError();
-
-let needsSetup = false;
-let setupCheckFailed = '';
-if (configured) {
-  try {
-    needsSetup = !(await hasAnyUser());
-  } catch (error) {
-    setupCheckFailed = error instanceof Error ? error.message : String(error);
-  }
-}
 
 let error = '';
 let email = '';
@@ -93,32 +78,6 @@ const labelCls =
             <p class="mt-2">
               Add it in your hosting dashboard (Vercel →{' '}
               <em>Settings → Environment Variables</em>) and redeploy.
-            </p>
-          </div>
-        )
-      }
-
-      {
-        setupCheckFailed && (
-          <div class="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-            <p class="font-medium">Could not reach the database.</p>
-            <p class="mt-1">{setupCheckFailed}</p>
-            <p class="mt-2">
-              Make sure you have run <code>db/schema.sql</code> in the Neon SQL
-              editor.
-            </p>
-          </div>
-        )
-      }
-
-      {
-        configured && needsSetup && (
-          <div class="mt-4 rounded-lg border border-blue-300 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
-            <p class="font-medium">No admin account exists yet.</p>
-            <p class="mt-2">
-              <a href="/admin/setup" class="font-medium underline">
-                Create your account →
-              </a>
             </p>
           </div>
         )

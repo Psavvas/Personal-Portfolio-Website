@@ -6,33 +6,30 @@ Astro 7 + TypeScript + Tailwind, deployed to Vercel with server-side rendering. 
 
 ```bash
 bun install
-cp .env.example .env   # fill in DATABASE_URL, BETTER_AUTH_SECRET, ADMIN_SETUP_KEY
+cp .env.example .env   # fill in DATABASE_URL and BETTER_AUTH_SECRET
 bun dev
 ```
 
 Then open <http://localhost:4321>. The admin portal is at <http://localhost:4321/admin>.
 
-## One-time database setup
+## Database
 
-1. Create a free project at [Neon](https://console.neon.tech).
-2. Open the project's **SQL Editor**, paste the contents of [`db/schema.sql`](db/schema.sql), and run it. The script is idempotent — re-running it never deletes content.
-3. Copy the project's **connection string** into the `DATABASE_URL` environment variable (locally in `.env`, and on Vercel under _Settings → Environment Variables_).
-4. Set `BETTER_AUTH_SECRET` to a long random value (`openssl rand -base64 32`) and `ADMIN_SETUP_KEY` to another random value, in the same places.
-5. Visit `/admin/setup`, enter the setup key, and create your account. That page closes permanently once the account exists, and `ADMIN_SETUP_KEY` can then be removed.
+Content and admin accounts both live in a [Neon](https://console.neon.tech) Postgres database. Put its **connection string** in `DATABASE_URL` (locally in `.env`, and on Vercel under _Settings → Environment Variables_), and set `BETTER_AUTH_SECRET` to a long random value (`openssl rand -base64 32`) in the same places.
+
+The database holds these tables: `projects`, `blog_posts`, `redirects`, and `site_content` for site content, plus `user`, `session`, `account`, and `verification` for Better Auth.
 
 ## Environment variables
 
-| Variable             | Required    | Purpose                                                              |
-| -------------------- | ----------- | -------------------------------------------------------------------- |
-| `DATABASE_URL`       | yes         | Neon Postgres connection string                                      |
-| `BETTER_AUTH_SECRET` | yes         | Signs admin sessions; changing it logs every device out              |
-| `ADMIN_SETUP_KEY`    | until setup | Authorises creating the owner account at `/admin/setup`              |
-| `BETTER_AUTH_URL`    | no          | Pins the auth origin; inferred per request when unset                |
-| `UPLOADTHING_TOKEN`  | no          | Enables image uploads from the admin editor (UploadThing → API Keys) |
+| Variable             | Required | Purpose                                                              |
+| -------------------- | -------- | -------------------------------------------------------------------- |
+| `DATABASE_URL`       | yes      | Neon Postgres connection string                                      |
+| `BETTER_AUTH_SECRET` | yes      | Signs admin sessions; changing it logs every device out              |
+| `BETTER_AUTH_URL`    | no       | Pins the auth origin; inferred per request when unset                |
+| `UPLOADTHING_TOKEN`  | no       | Enables image uploads from the admin editor (UploadThing → API Keys) |
 
 ## Admin portal
 
-Sign in at `/admin` with the email and password you chose during setup. From there you can:
+Sign in at `/admin` with your email and password. From there you can:
 
 - **Projects** — create, edit, publish/unpublish, and delete projects. Page content is written in Markdown; links placed above a `---` divider become the button row at the top of the project page.
 - **Blog** — write posts in Markdown with live preview, tags, publish dates, and an optional featured project.
@@ -48,7 +45,7 @@ Projects have a **Created entirely with AI** checkbox for fully AI-generated ("v
 
 ### Authentication
 
-Better Auth stores the owner account, its password hash, and active sessions in the same Neon database (`user`, `session`, `account`, and `verification` tables). The portal is deliberately single-account: the public sign-up endpoint is blocked, and a database hook rejects any attempt to create a second user, so `/admin/setup` only ever works once.
+Better Auth stores the owner account, its password hash, and active sessions in the same Neon database (`user`, `session`, `account`, and `verification` tables). The portal is deliberately single-account and closed: the public sign-up endpoint is blocked in middleware, and a database hook rejects any attempt to create a second user.
 
 Everything saves straight to Postgres and appears on the live site immediately — no rebuild needed. New items start as **drafts**; flip visibility to **published** when ready.
 

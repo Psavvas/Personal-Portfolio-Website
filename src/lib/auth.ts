@@ -4,7 +4,7 @@ import { getSql } from './db';
 
 // Better Auth, backed by the same Neon Postgres database as the site
 // content. Users, sessions, and accounts live in the `user`, `session`,
-// `account`, and `verification` tables created by db/schema.sql.
+// `account`, and `verification` tables.
 //
 // The instance is built lazily so a missing DATABASE_URL / BETTER_AUTH_SECRET
 // surfaces as a friendly setup message rather than crashing the whole site

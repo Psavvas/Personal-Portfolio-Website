@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getAdminSession } from './lib/auth';
 
-const PUBLIC_ADMIN_PATHS = new Set(['/admin/login', '/admin/setup']);
+const PUBLIC_ADMIN_PATHS = new Set(['/admin/login']);
 
 function normalize(pathname: string): string {
   return pathname.replace(/\/+$/, '') || '/';
@@ -10,8 +10,7 @@ function normalize(pathname: string): string {
 export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = normalize(context.url.pathname);
 
-  // Sign-up is never available over HTTP: the single owner account is created
-  // through /admin/setup, which calls Better Auth server-side.
+  // The portal is single-account and closed: no one can register a login.
   if (pathname.startsWith('/api/auth/sign-up')) {
     return new Response(JSON.stringify({ error: 'Sign-up is disabled.' }), {
       status: 403,

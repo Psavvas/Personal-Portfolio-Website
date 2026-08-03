@@ -1,5 +1,9 @@
 ---
-export const prerender = true;
+// Server-rendered on purpose. Unmatched /admin/* URLs fall through to this
+// page, and the auth middleware needs the request headers to tell a signed-in
+// admin (who should see a real 404) from an anonymous visitor (who gets sent
+// to the login page). Prerendering hides those headers from middleware.
+export const prerender = false;
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 

@@ -1,4 +1,5 @@
 ---
+import DbErrorNotice from '../../components/admin/DbErrorNotice.astro';
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { adminListBlogPosts } from '../../lib/blog';
 import { adminListProjects } from '../../lib/projects';
@@ -50,18 +51,7 @@ const badgeCls: Record<string, string> = {
     </p>
   </header>
 
-  {
-    dbError && (
-      <div class="mt-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-        <p class="font-medium">Could not reach the database.</p>
-        <p class="mt-1">{dbError}</p>
-        <p class="mt-2">
-          Check that <code>DATABASE_URL</code> is set and that you have run
-          <code>db/schema.sql</code> in the Neon SQL editor.
-        </p>
-      </div>
-    )
-  }
+  {dbError && <DbErrorNotice message={dbError} />}
 
   <section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <a href="/admin/projects" class={`${cardCls} hover-lift block`}>
