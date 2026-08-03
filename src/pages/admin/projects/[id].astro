@@ -2,7 +2,11 @@
 import ProjectForm from '../../../components/admin/ProjectForm.astro';
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { adminListBlogPosts } from '../../../lib/blog';
-import { friendlyDbError, parseProjectForm } from '../../../lib/admin-forms';
+import {
+  friendlyDbError,
+  parseProjectForm,
+  readProjectForm,
+} from '../../../lib/admin-forms';
 import {
   adminGetProject,
   adminUpdateProject,
@@ -21,12 +25,8 @@ if (Astro.request.method === 'POST') {
     return Astro.redirect('/admin/projects?saved=1');
   } catch (err) {
     error = friendlyDbError(err);
-    overrides = {
-      title: String(form.get('title') ?? ''),
-      summary: String(form.get('summary') ?? ''),
-      slug: String(form.get('slug') ?? ''),
-      bodyMd: String(form.get('bodyMd') ?? ''),
-    };
+    // Keep everything the user just submitted, including checkboxes.
+    overrides = readProjectForm(form);
   }
 }
 
@@ -44,6 +44,7 @@ const values: Partial<ProjectInput> = {
   tags: project.tags,
   year: project.year,
   featured: project.featured,
+  aiBuilt: project.aiBuilt,
   projectPage: project.projectPage,
   projectInfoUrl: project.projectInfoUrl,
   featuredBlog: project.featuredBlog,

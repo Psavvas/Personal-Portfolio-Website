@@ -2,7 +2,11 @@
 import ProjectForm from '../../../components/admin/ProjectForm.astro';
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { adminListBlogPosts } from '../../../lib/blog';
-import { friendlyDbError, parseProjectForm } from '../../../lib/admin-forms';
+import {
+  friendlyDbError,
+  parseProjectForm,
+  readProjectForm,
+} from '../../../lib/admin-forms';
 import { adminCreateProject, type ProjectInput } from '../../../lib/projects';
 
 let error = '';
@@ -11,20 +15,14 @@ let values: Partial<ProjectInput> = {};
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   try {
-    values = parseProjectForm(form);
-    await adminCreateProject(values as ProjectInput);
+    const input = parseProjectForm(form);
+    values = input;
+    await adminCreateProject(input);
     return Astro.redirect('/admin/projects?saved=1');
   } catch (err) {
     error = friendlyDbError(err);
-    // Re-populate the form with whatever was submitted, parsed or not.
-    if (!values.title) {
-      values = {
-        title: String(form.get('title') ?? ''),
-        summary: String(form.get('summary') ?? ''),
-        slug: String(form.get('slug') ?? ''),
-        bodyMd: String(form.get('bodyMd') ?? ''),
-      };
-    }
+    // Keep everything the user just submitted, including checkboxes.
+    values = readProjectForm(form);
   }
 }
 

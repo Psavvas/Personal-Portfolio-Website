@@ -6,7 +6,11 @@ import {
   adminUpdateBlogPost,
   type BlogPostInput,
 } from '../../../lib/blog';
-import { friendlyDbError, parseBlogPostForm } from '../../../lib/admin-forms';
+import {
+  friendlyDbError,
+  parseBlogPostForm,
+  readBlogPostForm,
+} from '../../../lib/admin-forms';
 import { adminListProjects } from '../../../lib/projects';
 
 const id = Astro.params.id ?? '';
@@ -21,13 +25,8 @@ if (Astro.request.method === 'POST') {
     return Astro.redirect('/admin/blog?saved=1');
   } catch (err) {
     error = friendlyDbError(err);
-    overrides = {
-      title: String(form.get('title') ?? ''),
-      summary: String(form.get('summary') ?? ''),
-      slug: String(form.get('slug') ?? ''),
-      dateIso: String(form.get('dateIso') ?? ''),
-      bodyMd: String(form.get('bodyMd') ?? ''),
-    };
+    // Keep everything the user just submitted.
+    overrides = readBlogPostForm(form);
   }
 }
 

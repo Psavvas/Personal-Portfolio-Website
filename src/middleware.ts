@@ -1,25 +1,39 @@
 import { defineMiddleware } from 'astro:middleware';
-import { isAuthenticated } from './lib/admin-auth';
+import { getAdminSession } from './lib/auth';
 
-export const onRequest = defineMiddleware((context, next) => {
-  const { pathname } = context.url;
+const PUBLIC_ADMIN_PATHS = new Set(['/admin/login', '/admin/setup']);
+
+function normalize(pathname: string): string {
+  return pathname.replace(/\/+$/, '') || '/';
+}
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const pathname = normalize(context.url.pathname);
+
+  // Sign-up is never available over HTTP: the single owner account is created
+  // through /admin/setup, which calls Better Auth server-side.
+  if (pathname.startsWith('/api/auth/sign-up')) {
+    return new Response(JSON.stringify({ error: 'Sign-up is disabled.' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   if (!pathname.startsWith('/admin')) {
     return next();
   }
 
-  const isLoginPage =
-    pathname === '/admin/login' || pathname === '/admin/login/';
-  const authed = isAuthenticated(context.cookies);
+  const session = await getAdminSession(context.request);
+  context.locals.admin = session;
 
-  if (isLoginPage) {
-    if (authed && context.request.method === 'GET') {
+  if (PUBLIC_ADMIN_PATHS.has(pathname)) {
+    if (session && context.request.method === 'GET') {
       return context.redirect('/admin');
     }
     return next();
   }
 
-  if (!authed) {
+  if (!session) {
     if (pathname.startsWith('/admin/api/')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -27,8 +41,9 @@ export const onRequest = defineMiddleware((context, next) => {
       });
     }
 
-    const nextPath = encodeURIComponent(pathname);
-    return context.redirect(`/admin/login?next=${nextPath}`);
+    return context.redirect(
+      `/admin/login?next=${encodeURIComponent(pathname)}`
+    );
   }
 
   return next();

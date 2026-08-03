@@ -34,23 +34,17 @@ function visibility(form: FormData): 'draft' | 'published' {
   return form.get('visibility') === 'published' ? 'published' : 'draft';
 }
 
-export function parseProjectForm(form: FormData): ProjectInput {
-  const title = text(form, 'title');
-  if (!title) {
-    throw new Error('Title is required.');
-  }
-
+/**
+ * Reads every project field from a submitted form without validating it.
+ * Used to repopulate the form after an error so the editor never silently
+ * loses toggles, tags, or visibility the user had just set.
+ */
+export function readProjectForm(form: FormData): ProjectInput {
   const projectPage = checkbox(form, 'projectPage');
-  let slug = slugify(text(form, 'slug'));
-  if (!slug && projectPage) {
-    slug = slugify(title);
-  }
-  if (projectPage && !slug) {
-    throw new Error('A slug is required when the project has its own page.');
-  }
+  const slug = slugify(text(form, 'slug'));
 
   return {
-    title,
+    title: text(form, 'title'),
     summary: text(form, 'summary'),
     slug: slug || undefined,
     tags: parseTags(text(form, 'tags')),
@@ -65,32 +59,57 @@ export function parseProjectForm(form: FormData): ProjectInput {
   };
 }
 
-export function parseBlogPostForm(form: FormData): BlogPostInput {
-  const title = text(form, 'title');
-  if (!title) {
+export function parseProjectForm(form: FormData): ProjectInput {
+  const input = readProjectForm(form);
+
+  if (!input.title) {
     throw new Error('Title is required.');
   }
 
-  const slug = slugify(text(form, 'slug')) || slugify(title);
-  if (!slug) {
-    throw new Error('A slug is required.');
+  // Fall back to a slug derived from the title when the project needs a page.
+  if (!input.slug && input.projectPage) {
+    input.slug = slugify(input.title);
+  }
+  if (input.projectPage && !input.slug) {
+    throw new Error('A slug is required when the project has its own page.');
   }
 
-  const dateIso = text(form, 'dateIso');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) {
-    throw new Error('A publish date is required.');
-  }
+  return input;
+}
 
+/** Unvalidated counterpart to {@link parseBlogPostForm}, for repopulation. */
+export function readBlogPostForm(form: FormData): BlogPostInput {
   return {
-    title,
-    slug,
+    title: text(form, 'title'),
+    slug: slugify(text(form, 'slug')),
     summary: text(form, 'summary'),
-    dateIso,
+    dateIso: text(form, 'dateIso'),
     tags: parseTags(text(form, 'tags')),
     featuredProjectSlug: optionalText(form, 'featuredProjectSlug'),
     bodyMd: String(form.get('bodyMd') ?? ''),
     visibility: visibility(form),
   };
+}
+
+export function parseBlogPostForm(form: FormData): BlogPostInput {
+  const input = readBlogPostForm(form);
+
+  if (!input.title) {
+    throw new Error('Title is required.');
+  }
+
+  if (!input.slug) {
+    input.slug = slugify(input.title);
+  }
+  if (!input.slug) {
+    throw new Error('A slug is required.');
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateIso)) {
+    throw new Error('A publish date is required.');
+  }
+
+  return input;
 }
 
 /** Turns Postgres constraint errors into messages safe to show in the form. */

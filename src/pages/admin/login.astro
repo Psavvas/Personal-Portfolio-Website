@@ -1,34 +1,69 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import {
-  isAdminConfigured,
-  setSessionCookie,
-  verifyPassword,
-} from '../../lib/admin-auth';
+  getAuth,
+  getAuthConfigError,
+  hasAnyUser,
+  isAuthConfigured,
+} from '../../lib/auth';
 
-const configured = isAdminConfigured();
-let error = '';
+const configured = isAuthConfigured();
+const configError = getAuthConfigError();
 
-if (Astro.request.method === 'POST') {
-  const form = await Astro.request.formData();
-  const password = String(form.get('password') ?? '');
-
-  if (!configured) {
-    error =
-      'The admin portal is not configured yet — set the ADMIN_PASSWORD environment variable first.';
-  } else if (verifyPassword(password)) {
-    setSessionCookie(Astro.cookies);
-
-    const requested = Astro.url.searchParams.get('next') ?? '/admin';
-    return Astro.redirect(
-      requested.startsWith('/admin') && !requested.startsWith('//')
-        ? requested
-        : '/admin'
-    );
-  } else {
-    error = 'Incorrect password. Please try again.';
+let needsSetup = false;
+let setupCheckFailed = '';
+if (configured) {
+  try {
+    needsSetup = !(await hasAnyUser());
+  } catch (error) {
+    setupCheckFailed = error instanceof Error ? error.message : String(error);
   }
 }
+
+let error = '';
+let email = '';
+
+if (Astro.request.method === 'POST' && configured) {
+  const form = await Astro.request.formData();
+  email = String(form.get('email') ?? '').trim();
+  const password = String(form.get('password') ?? '');
+
+  const requested = Astro.url.searchParams.get('next') ?? '/admin';
+  const next =
+    requested.startsWith('/admin') && !requested.startsWith('//')
+      ? requested
+      : '/admin';
+
+  try {
+    // Sign in server-side, then forward Better Auth's session cookies onto
+    // our own redirect so the whole flow works without client-side JS.
+    const result = await getAuth().api.signInEmail({
+      body: { email, password },
+      headers: Astro.request.headers,
+      asResponse: true,
+    });
+
+    if (result.ok) {
+      const redirect = new Response(null, {
+        status: 302,
+        headers: { Location: next },
+      });
+      for (const cookie of result.headers.getSetCookie()) {
+        redirect.headers.append('set-cookie', cookie);
+      }
+      return redirect;
+    }
+
+    error = 'Incorrect email or password. Please try again.';
+  } catch {
+    error = 'Incorrect email or password. Please try again.';
+  }
+}
+
+const inputCls =
+  'mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500';
+const labelCls =
+  'block text-sm font-medium text-neutral-900 dark:text-neutral-100';
 ---
 
 <AdminLayout title="Log in" bare>
@@ -47,22 +82,50 @@ if (Astro.request.method === 'POST') {
         Log in
       </h1>
       <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
-        Enter the admin password to manage projects, blog posts, redirects, and
-        site content.
+        Sign in to manage projects, blog posts, redirects, and site content.
       </p>
 
       {
         !configured && (
           <div class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-            No <code>ADMIN_PASSWORD</code> environment variable is set, so
-            logins are disabled. Add it in your hosting dashboard (e.g. Vercel →
-            Settings → Environment Variables) and redeploy.
+            <p class="font-medium">Authentication is not configured yet.</p>
+            <p class="mt-1">{configError}</p>
+            <p class="mt-2">
+              Add it in your hosting dashboard (Vercel →{' '}
+              <em>Settings → Environment Variables</em>) and redeploy.
+            </p>
           </div>
         )
       }
 
       {
-        error && configured && (
+        setupCheckFailed && (
+          <div class="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+            <p class="font-medium">Could not reach the database.</p>
+            <p class="mt-1">{setupCheckFailed}</p>
+            <p class="mt-2">
+              Make sure you have run <code>db/schema.sql</code> in the Neon SQL
+              editor.
+            </p>
+          </div>
+        )
+      }
+
+      {
+        configured && needsSetup && (
+          <div class="mt-4 rounded-lg border border-blue-300 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
+            <p class="font-medium">No admin account exists yet.</p>
+            <p class="mt-2">
+              <a href="/admin/setup" class="font-medium underline">
+                Create your account →
+              </a>
+            </p>
+          </div>
+        )
+      }
+
+      {
+        error && (
           <div class="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
             {error}
           </div>
@@ -71,24 +134,37 @@ if (Astro.request.method === 'POST') {
 
       <form method="post" class="mt-6 space-y-4">
         <div>
-          <label
-            for="password"
-            class="block text-sm font-medium text-neutral-900 dark:text-neutral-100"
-          >
-            Password
-          </label>
+          <label for="email" class={labelCls}>Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocomplete="username"
+            value={email}
+            disabled={!configured}
+            class={inputCls}
+          />
+        </div>
+
+        <div>
+          <label for="password" class={labelCls}>Password</label>
           <input
             id="password"
             name="password"
             type="password"
             required
             autocomplete="current-password"
-            autofocus
-            class="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500"
+            disabled={!configured}
+            class={inputCls}
           />
         </div>
 
-        <button type="submit" class="site-btn hover-lift w-full justify-center">
+        <button
+          type="submit"
+          disabled={!configured}
+          class="site-btn hover-lift w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
+        >
           Log in
         </button>
       </form>
