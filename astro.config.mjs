@@ -1,7 +1,5 @@
 import 'dotenv/config';
 import { defineConfig } from 'astro/config';
-import react from '@astrojs/react';
-import mdx from '@astrojs/mdx';
 import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -17,7 +15,6 @@ export default defineConfig({
   // `'jsx'`, which strips whitespace between inline elements; `true` keeps
   // the HTML-aware compression so rendered output is unchanged by the upgrade.
   compressHTML: true,
-  integrations: [react(), mdx()],
   image: {
     remotePatterns: [
       { protocol: 'https', hostname: 'utfs.io' },

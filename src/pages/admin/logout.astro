@@ -2,7 +2,15 @@
 import { getAuth, isAuthConfigured } from '../../lib/auth';
 
 // Revokes the session in the database and clears the cookie, then returns to
-// the login page. POST-only in practice — the nav renders this as a form.
+// the login page. POST only: as a GET this was a state change any third-party
+// page could trigger with an <img> tag.
+if (Astro.request.method !== 'POST') {
+  return new Response('Method Not Allowed', {
+    status: 405,
+    headers: { Allow: 'POST' },
+  });
+}
+
 const redirect = new Response(null, {
   status: 302,
   headers: { Location: '/admin/login' },

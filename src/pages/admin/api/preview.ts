@@ -2,9 +2,17 @@ import type { APIRoute } from 'astro';
 import { renderBannerMarkdown, renderMarkdown } from '../../../lib/markdown';
 
 // Renders Markdown with the exact pipeline the public site uses, so the
-// admin editor preview matches the published result. Auth is enforced by
-// the /admin middleware.
-export const POST: APIRoute = async ({ request }) => {
+// admin editor preview matches the published result. Auth is enforced by the
+// /admin middleware and re-checked here, so this never becomes a public
+// Markdown renderer if that gate is ever loosened.
+export const POST: APIRoute = async ({ request, locals }) => {
+  if (!locals.admin) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   let markdown = '';
   let mode = 'content';
 
