@@ -13,6 +13,10 @@ import {
 } from '../../../lib/admin-forms';
 import { adminListProjects } from '../../../lib/projects';
 
+// Defence in depth: /admin is gated in src/middleware.ts, and again here so
+// that no page is one middleware mistake away from being public.
+if (!Astro.locals.admin) return Astro.redirect('/admin/login');
+
 const id = Astro.params.id ?? '';
 let error = '';
 let overrides: Partial<BlogPostInput> | null = null;

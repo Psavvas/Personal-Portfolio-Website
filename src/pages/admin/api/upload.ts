@@ -2,8 +2,9 @@ import type { APIRoute } from 'astro';
 import { UTApi } from 'uploadthing/server';
 
 // Uploads images to UploadThing from the admin Markdown editor. Auth is
-// enforced by the /admin middleware; the UPLOADTHING_TOKEN env var must be
-// set for uploads to work.
+// enforced by the /admin middleware and re-checked here — an open upload
+// endpoint burns someone else's storage quota. The UPLOADTHING_TOKEN env var
+// must be set for uploads to work.
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8 MB
 
@@ -14,7 +15,11 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
+  if (!locals.admin) {
+    return json({ error: 'Unauthorized' }, 401);
+  }
+
   if (!process.env.UPLOADTHING_TOKEN?.trim()) {
     return json(
       {

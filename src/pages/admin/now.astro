@@ -7,6 +7,10 @@ import {
   adminSaveNowMarkdown,
 } from '../../lib/site-content';
 
+// Defence in depth: /admin is gated in src/middleware.ts, and again here so
+// that no page is one middleware mistake away from being public.
+if (!Astro.locals.admin) return Astro.redirect('/admin/login');
+
 let error = '';
 let dbError = '';
 
