@@ -1,9 +1,29 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getAuth, getAuthConfigError, isAuthConfigured } from '../../lib/auth';
+import {
+  checkLoginThrottle,
+  clearLoginAttempts,
+  recordFailedLogin,
+} from '../../lib/login-throttle';
 
 const configured = isAuthConfigured();
 const configError = getAuthConfigError();
+
+/**
+ * The Vercel adapter populates `clientAddress` from the platform's own headers.
+ * It throws on adapters that can't supply one, which only bounds the per-IP
+ * limit — the per-email limit still applies.
+ */
+function clientIp(): string | null {
+  try {
+    return Astro.clientAddress || null;
+  } catch {
+    return null;
+  }
+}
+
+const GENERIC_ERROR = 'Incorrect email or password. Please try again.';
 
 let error = '';
 let email = '';
@@ -12,6 +32,7 @@ if (Astro.request.method === 'POST' && configured) {
   const form = await Astro.request.formData();
   email = String(form.get('email') ?? '').trim();
   const password = String(form.get('password') ?? '');
+  const ip = clientIp();
 
   const requested = Astro.url.searchParams.get('next') ?? '/admin';
   const next =
@@ -20,28 +41,50 @@ if (Astro.request.method === 'POST' && configured) {
       : '/admin';
 
   try {
-    // Sign in server-side, then forward Better Auth's session cookies onto
-    // our own redirect so the whole flow works without client-side JS.
-    const result = await getAuth().api.signInEmail({
-      body: { email, password },
-      headers: Astro.request.headers,
-      asResponse: true,
-    });
+    // Throttle before touching the password check, so a locked-out attacker
+    // learns nothing from how long the response takes.
+    const throttle = await checkLoginThrottle(email, ip);
 
-    if (result.ok) {
-      const redirect = new Response(null, {
-        status: 302,
-        headers: { Location: next },
+    if (throttle.blocked) {
+      error = `Too many failed attempts. Try again in ${throttle.retryAfterMinutes} minute${
+        throttle.retryAfterMinutes === 1 ? '' : 's'
+      }.`;
+    } else {
+      // Sign in server-side, then forward Better Auth's session cookies onto
+      // our own redirect so the whole flow works without client-side JS.
+      const result = await getAuth().api.signInEmail({
+        body: { email, password },
+        headers: Astro.request.headers,
+        asResponse: true,
       });
-      for (const cookie of result.headers.getSetCookie()) {
-        redirect.headers.append('set-cookie', cookie);
-      }
-      return redirect;
-    }
 
-    error = 'Incorrect email or password. Please try again.';
-  } catch {
-    error = 'Incorrect email or password. Please try again.';
+      if (result.ok) {
+        await clearLoginAttempts(email, ip);
+
+        const redirect = new Response(null, {
+          status: 302,
+          headers: { Location: next },
+        });
+        for (const cookie of result.headers.getSetCookie()) {
+          redirect.headers.append('set-cookie', cookie);
+        }
+        return redirect;
+      }
+
+      await recordFailedLogin(email, ip);
+      error = GENERIC_ERROR;
+    }
+  } catch (cause) {
+    // Better Auth throws an APIError on bad credentials, which is the common
+    // case; anything else (an unreachable database, a failed throttle write)
+    // must not fall through to an unthrottled retry, so it also fails closed.
+    try {
+      await recordFailedLogin(email, ip);
+      error = GENERIC_ERROR;
+    } catch {
+      console.error('Login is unavailable — the attempt store failed.', cause);
+      error = 'Login is temporarily unavailable. Please try again shortly.';
+    }
   }
 }
 
