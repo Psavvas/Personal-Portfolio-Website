@@ -15,25 +15,57 @@ let cachedAuthKey = '';
 let cachedPool: Pool | null = null;
 let cachedPoolKey = '';
 
+/** Placeholder values from .env.example, which must never reach production. */
+const PLACEHOLDER_SECRETS = new Set([
+  'change-me',
+  'changeme',
+  'secret',
+  'your-secret-here',
+]);
+
+const MIN_SECRET_LENGTH = 32;
+
 export function getAuthSecret(): string {
   return process.env.BETTER_AUTH_SECRET?.trim() ?? '';
 }
 
+/**
+ * A secret is only usable if it is present, isn't a copied-in placeholder, and
+ * is long enough to be worth signing with. A portal that boots on `change-me`
+ * looks configured while being anything but.
+ */
+function getSecretError(): string {
+  const secret = getAuthSecret();
+
+  if (!secret) return 'Missing environment variable: BETTER_AUTH_SECRET.';
+
+  if (PLACEHOLDER_SECRETS.has(secret.toLowerCase())) {
+    return 'BETTER_AUTH_SECRET is still set to a placeholder value. Generate a real one with `openssl rand -base64 32`.';
+  }
+
+  if (secret.length < MIN_SECRET_LENGTH) {
+    return `BETTER_AUTH_SECRET is too short — it must be at least ${MIN_SECRET_LENGTH} characters. Generate one with \`openssl rand -base64 32\`.`;
+  }
+
+  return '';
+}
+
 export function isAuthConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL?.trim() && getAuthSecret());
+  return Boolean(process.env.DATABASE_URL?.trim()) && !getSecretError();
 }
 
 /** Human-readable reason the admin portal can't authenticate anyone yet. */
 export function getAuthConfigError(): string {
-  const missing: string[] = [];
-  if (!process.env.DATABASE_URL?.trim()) missing.push('DATABASE_URL');
-  if (!getAuthSecret()) missing.push('BETTER_AUTH_SECRET');
+  const problems: string[] = [];
 
-  if (missing.length === 0) return '';
+  if (!process.env.DATABASE_URL?.trim()) {
+    problems.push('Missing environment variable: DATABASE_URL.');
+  }
 
-  return `Missing environment ${
-    missing.length === 1 ? 'variable' : 'variables'
-  }: ${missing.join(' and ')}.`;
+  const secretError = getSecretError();
+  if (secretError) problems.push(secretError);
+
+  return problems.join(' ');
 }
 
 function getPool(connectionString: string): Pool {
@@ -75,9 +107,20 @@ function createAuth(connectionString: string, secret: string) {
     ...(process.env.BETTER_AUTH_URL?.trim()
       ? { baseURL: process.env.BETTER_AUTH_URL.trim() }
       : {}),
-    // The admin portal is a same-origin HTML form; only ever trust the origin
-    // the request actually arrived on.
+    // Pinned to BETTER_AUTH_URL when it is set. Falling back to the origin the
+    // request arrived on is only meaningful on hosts nobody else can reach —
+    // the Host header is attacker-controlled on the *.vercel.app deployment
+    // URL, and a self-referential check proves nothing there.
     trustedOrigins: (request) => {
+      const pinned = process.env.BETTER_AUTH_URL?.trim();
+      if (pinned) {
+        try {
+          return [new URL(pinned).origin];
+        } catch {
+          return [];
+        }
+      }
+
       if (!request) return [];
       try {
         return [new URL(request.url).origin];
@@ -88,6 +131,10 @@ function createAuth(connectionString: string, secret: string) {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 12,
+      // The portal is single-account and closed. This is the setting that
+      // actually turns registration off — the previous middleware path
+      // denylist only held for as long as the route string never changed.
+      disableSignUp: true,
       // No mail provider is wired up, so email verification would lock the
       // only account out of the portal.
       requireEmailVerification: false,
@@ -99,9 +146,10 @@ function createAuth(connectionString: string, secret: string) {
     databaseHooks: {
       user: {
         create: {
-          // Hard cap of one account. This is a single-owner admin portal, so
-          // even if the sign-up endpoint were somehow reachable it can never
-          // mint a second login.
+          // Third layer behind `disableSignUp` and the deleted HTTP handler:
+          // a hard cap of one account, enforced at the write itself. Reachable
+          // only through server-side `auth.api` calls, so the read-then-write
+          // race it contains needs code in this repo to trigger it.
           before: async () => {
             if (await hasAnyUser()) {
               return false;
