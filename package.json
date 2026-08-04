@@ -1,5 +1,5 @@
 {
-  "name": "paulsavvas.me",
+  "name": "paulsavvas.com",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -13,21 +13,25 @@
   "dependencies": {
     "@astrojs/mdx": "7.0.0",
     "@astrojs/react": "6.0.0",
-    "@astrojs/sitemap": "3.7.3",
-    "@notionhq/client": "^5.20.0",
+    "@astrojs/vercel": "^11.0.3",
+    "@neondatabase/serverless": "^1.1.0",
     "@tailwindcss/typography": "^0.5.19",
     "@vercel/analytics": "^2.0.1",
     "astro": "7.0.3",
+    "better-auth": "^1.6.25",
     "dotenv": "^17.4.2",
     "gray-matter": "^4.0.3",
     "image-size": "^2.0.2",
     "marked": "^15.0.7",
-    "notion-to-md": "^3.1.9",
+    "pg": "^8.22.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "uploadthing": "^7.7.4"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
     "@tailwindcss/vite": "4.2.2",
+    "@types/pg": "^8.20.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "prettier": "3.8.1",

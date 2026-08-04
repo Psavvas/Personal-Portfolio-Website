@@ -1,0 +1,145 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAuth } from '../../lib/auth';
+
+const MIN_PASSWORD_LENGTH = 12;
+
+const admin = Astro.locals.admin;
+if (!admin) {
+  return Astro.redirect('/admin/login');
+}
+
+let error = '';
+let saved = Astro.url.searchParams.has('saved');
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const currentPassword = String(form.get('currentPassword') ?? '');
+  const newPassword = String(form.get('newPassword') ?? '');
+  const confirm = String(form.get('confirmPassword') ?? '');
+
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    error = `Your new password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  } else if (newPassword !== confirm) {
+    error = 'The two new passwords do not match.';
+  } else {
+    try {
+      const result = await getAuth().api.changePassword({
+        body: {
+          currentPassword,
+          newPassword,
+          // Sign other devices out — a password change should end any session
+          // the owner no longer controls.
+          revokeOtherSessions: true,
+        },
+        headers: Astro.request.headers,
+        asResponse: true,
+      });
+
+      if (result.ok) {
+        const redirect = new Response(null, {
+          status: 302,
+          headers: { Location: '/admin/account?saved=1' },
+        });
+        for (const cookie of result.headers.getSetCookie()) {
+          redirect.headers.append('set-cookie', cookie);
+        }
+        return redirect;
+      }
+
+      error = 'Your current password is incorrect.';
+    } catch {
+      error = 'Your current password is incorrect.';
+    }
+  }
+}
+
+const inputCls =
+  'mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500';
+const labelCls =
+  'block text-sm font-medium text-neutral-900 dark:text-neutral-100';
+---
+
+<AdminLayout title="Account">
+  <header>
+    <h1
+      class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+    >
+      Account
+    </h1>
+    <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+      Signed in as <strong>{admin.name}</strong> ({admin.email}).
+    </p>
+  </header>
+
+  {
+    saved && (
+      <div class="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        Password updated. Any other signed-in devices have been logged out.
+      </div>
+    )
+  }
+
+  {
+    error && (
+      <div class="mt-6 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        {error}
+      </div>
+    )
+  }
+
+  <div
+    class="mt-8 max-w-md rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+      Change password
+    </h2>
+
+    <form method="post" class="mt-4 space-y-4">
+      <div>
+        <label for="currentPassword" class={labelCls}>Current password</label>
+        <input
+          id="currentPassword"
+          name="currentPassword"
+          type="password"
+          required
+          autocomplete="current-password"
+          class={inputCls}
+        />
+      </div>
+
+      <div>
+        <label for="newPassword" class={labelCls}>New password</label>
+        <input
+          id="newPassword"
+          name="newPassword"
+          type="password"
+          required
+          minlength={MIN_PASSWORD_LENGTH}
+          autocomplete="new-password"
+          class={inputCls}
+        />
+        <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          At least {MIN_PASSWORD_LENGTH} characters.
+        </p>
+      </div>
+
+      <div>
+        <label for="confirmPassword" class={labelCls}>
+          Confirm new password
+        </label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          required
+          minlength={MIN_PASSWORD_LENGTH}
+          autocomplete="new-password"
+          class={inputCls}
+        />
+      </div>
+
+      <button type="submit" class="site-btn hover-lift">Update password</button>
+    </form>
+  </div>
+</AdminLayout>

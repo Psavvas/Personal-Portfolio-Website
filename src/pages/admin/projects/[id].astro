@@ -1,0 +1,107 @@
+---
+import ProjectForm from '../../../components/admin/ProjectForm.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { adminListBlogPosts } from '../../../lib/blog';
+import {
+  friendlyDbError,
+  parseProjectForm,
+  readProjectForm,
+} from '../../../lib/admin-forms';
+import {
+  adminGetProject,
+  adminUpdateProject,
+  type ProjectInput,
+} from '../../../lib/projects';
+
+const id = Astro.params.id ?? '';
+let error = '';
+let overrides: Partial<ProjectInput> | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  try {
+    const input = parseProjectForm(form);
+    await adminUpdateProject(id, input);
+    return Astro.redirect('/admin/projects?saved=1');
+  } catch (err) {
+    error = friendlyDbError(err);
+    // Keep everything the user just submitted, including checkboxes.
+    overrides = readProjectForm(form);
+  }
+}
+
+// If the database is unreachable, fall back to the list page, which shows
+// setup instructions.
+const project = await adminGetProject(id).catch(() => undefined);
+if (!project) {
+  return Astro.redirect('/admin/projects');
+}
+
+const values: Partial<ProjectInput> = {
+  title: project.title,
+  summary: project.summary,
+  slug: project.slug,
+  tags: project.tags,
+  year: project.year,
+  featured: project.featured,
+  aiBuilt: project.aiBuilt,
+  projectPage: project.projectPage,
+  projectInfoUrl: project.projectInfoUrl,
+  featuredBlog: project.featuredBlog,
+  bodyMd: project.bodyMd,
+  visibility: project.visibility,
+  ...(overrides ?? {}),
+};
+
+const blogSlugs = await adminListBlogPosts()
+  .then((posts) => posts.map((post) => post.slug))
+  .catch(() => [] as string[]);
+---
+
+<AdminLayout title={`Edit: ${project.title}`}>
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <a
+        href="/admin/projects"
+        class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+      >
+        ← Back to projects
+      </a>
+      <h1
+        class="mt-3 text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+      >
+        Edit project
+      </h1>
+    </div>
+    {
+      project.visibility === 'published' &&
+        project.projectPage &&
+        project.slug && (
+          <a
+            href={`/projects/${project.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="site-btn site-btn--sm hover-lift"
+          >
+            View live ↗
+          </a>
+        )
+    }
+  </header>
+
+  {
+    error && (
+      <div class="mt-6 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        {error}
+      </div>
+    )
+  }
+
+  <div class="mt-8">
+    <ProjectForm
+      values={values}
+      blogSlugs={blogSlugs}
+      submitLabel="Save changes"
+    />
+  </div>
+</AdminLayout>

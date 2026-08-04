@@ -1,0 +1,163 @@
+---
+import MarkdownEditor from './MarkdownEditor.astro';
+import type { BlogPostInput } from '../../lib/blog';
+
+interface Props {
+  values?: Partial<BlogPostInput>;
+  projectSlugs: string[];
+  submitLabel: string;
+}
+
+const { values = {}, projectSlugs, submitLabel } = Astro.props;
+
+const today = new Date().toISOString().slice(0, 10);
+
+const inputCls =
+  'mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500';
+const labelCls =
+  'block text-sm font-medium text-neutral-900 dark:text-neutral-100';
+const helpCls = 'mt-1 text-xs text-neutral-500 dark:text-neutral-400';
+---
+
+<form method="post" class="space-y-6" data-blog-form>
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <label for="title" class={labelCls}>Title *</label>
+      <input
+        id="title"
+        name="title"
+        type="text"
+        required
+        value={values.title ?? ''}
+        class={inputCls}
+        data-slug-source
+      />
+    </div>
+
+    <div>
+      <label for="slug" class={labelCls}>Slug</label>
+      <input
+        id="slug"
+        name="slug"
+        type="text"
+        value={values.slug ?? ''}
+        placeholder="my-post"
+        class={inputCls}
+        data-slug-target
+      />
+      <p class={helpCls}>
+        Post URL: /blog/&lt;slug&gt;. Left blank, it is generated from the
+        title.
+      </p>
+    </div>
+  </div>
+
+  <div>
+    <label for="summary" class={labelCls}>Summary</label>
+    <textarea id="summary" name="summary" rows="3" class={inputCls}
+      >{values.summary ?? ''}</textarea
+    >
+    <p class={helpCls}>
+      Shown on the blog list and used as the page description.
+    </p>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-3">
+    <div>
+      <label for="dateIso" class={labelCls}>Publish date *</label>
+      <input
+        id="dateIso"
+        name="dateIso"
+        type="date"
+        required
+        value={values.dateIso ?? today}
+        class={inputCls}
+      />
+    </div>
+
+    <div>
+      <label for="tags" class={labelCls}>Tags</label>
+      <input
+        id="tags"
+        name="tags"
+        type="text"
+        value={(values.tags ?? []).join(', ')}
+        placeholder="Engineering, Notes"
+        class={inputCls}
+      />
+      <p class={helpCls}>Comma separated.</p>
+    </div>
+
+    <div>
+      <label for="visibility" class={labelCls}>Visibility</label>
+      <select id="visibility" name="visibility" class={inputCls}>
+        <option value="draft" selected={values.visibility !== 'published'}>
+          Draft (hidden)
+        </option>
+        <option value="published" selected={values.visibility === 'published'}>
+          Published
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="md:w-1/2">
+    <label for="featuredProjectSlug" class={labelCls}>Featured project</label>
+    <select
+      id="featuredProjectSlug"
+      name="featuredProjectSlug"
+      class={inputCls}
+    >
+      <option value="">— none —</option>
+      {
+        projectSlugs.map((slug) => (
+          <option value={slug} selected={values.featuredProjectSlug === slug}>
+            {slug}
+          </option>
+        ))
+      }
+    </select>
+    <p class={helpCls}>Shown as a callout at the top of the post.</p>
+  </div>
+
+  <MarkdownEditor
+    name="bodyMd"
+    label="Post content (Markdown)"
+    value={values.bodyMd ?? ''}
+  />
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="site-btn hover-lift">{submitLabel}</button>
+    <a
+      href="/admin/blog"
+      class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+    >
+      Cancel
+    </a>
+  </div>
+</form>
+
+<script>
+  document
+    .querySelectorAll<HTMLFormElement>('[data-blog-form]')
+    .forEach((form) => {
+      const source = form.querySelector<HTMLInputElement>('[data-slug-source]');
+      const target = form.querySelector<HTMLInputElement>('[data-slug-target]');
+      if (!source || !target) return;
+
+      let touched = target.value.length > 0;
+      target.addEventListener('input', () => {
+        touched = target.value.length > 0;
+      });
+
+      source.addEventListener('input', () => {
+        if (touched) return;
+        target.value = source.value
+          .trim()
+          .toLowerCase()
+          .replace(/['’]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      });
+    });
+</script>

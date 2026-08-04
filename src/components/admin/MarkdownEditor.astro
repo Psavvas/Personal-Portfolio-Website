@@ -1,0 +1,305 @@
+---
+interface Props {
+  name: string;
+  label: string;
+  value?: string;
+  rows?: number;
+  hint?: string;
+  /** Which render pipeline the preview should use. */
+  previewMode?: 'content' | 'banner';
+  /** Banners are short — hide the image upload controls for them. */
+  allowUploads?: boolean;
+}
+
+const {
+  name,
+  label,
+  value = '',
+  rows = 18,
+  hint = 'Markdown supported: **bold**, *italic*, # headings, - lists, [links](https://…), ![images](https://…). YouTube/Vimeo links become embedded players.',
+  previewMode = 'content',
+  allowUploads = true,
+} = Astro.props;
+---
+
+<div class="js-md-editor" data-md-editor data-md-preview-mode={previewMode}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <label
+      for={`md-${name}`}
+      class="block text-sm font-medium text-neutral-900 dark:text-neutral-100"
+    >
+      {label}
+    </label>
+
+    <div class="flex items-center gap-2">
+      {
+        allowUploads && (
+          <>
+            <button
+              type="button"
+              data-md-upload-btn
+              class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:text-neutral-900 dark:border-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+            >
+              <svg
+                class="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 16.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1.5Zm0 0 4.5-4.5a1.5 1.5 0 0 1 2.1 0l5.4 5.4M14 13.5l1.9-1.9a1.5 1.5 0 0 1 2.1 0L20 13.5M15 8.5h.01"
+                />
+              </svg>
+              Insert image
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              class="hidden"
+              data-md-upload-input
+            />
+          </>
+        )
+      }
+
+      <div
+        class="inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800"
+        role="tablist"
+      >
+        <button
+          type="button"
+          data-md-tab="write"
+          aria-selected="true"
+          class="rounded-md px-3 py-1 text-xs font-medium text-neutral-900 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-100"
+        >
+          Write
+        </button>
+        <button
+          type="button"
+          data-md-tab="preview"
+          aria-selected="false"
+          class="rounded-md px-3 py-1 text-xs font-medium text-neutral-500 dark:text-neutral-400"
+        >
+          Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <textarea
+    id={`md-${name}`}
+    name={name}
+    rows={rows}
+    data-md-input
+    spellcheck="true"
+    class="mt-2 w-full rounded-xl border border-neutral-200 bg-white p-4 font-mono text-sm leading-6 text-neutral-900 shadow-sm outline-none focus:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-neutral-600"
+    >{value}</textarea
+  >
+
+  <div
+    data-md-preview
+    class="prose prose-neutral dark:prose-invert mt-2 hidden max-w-none rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+  </div>
+
+  <p data-md-status class="mt-2 hidden text-xs leading-5"></p>
+
+  <p class="mt-2 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+    {hint}
+    {
+      allowUploads &&
+        ' You can also paste or drag & drop images straight into the editor — they upload to UploadThing automatically.'
+    }
+  </p>
+</div>
+
+<script>
+  function setupEditor(root: HTMLElement) {
+    const input = root.querySelector<HTMLTextAreaElement>('[data-md-input]');
+    const preview = root.querySelector<HTMLElement>('[data-md-preview]');
+    const writeTab = root.querySelector<HTMLButtonElement>(
+      '[data-md-tab="write"]'
+    );
+    const previewTab = root.querySelector<HTMLButtonElement>(
+      '[data-md-tab="preview"]'
+    );
+    const uploadBtn = root.querySelector<HTMLButtonElement>(
+      '[data-md-upload-btn]'
+    );
+    const uploadInput = root.querySelector<HTMLInputElement>(
+      '[data-md-upload-input]'
+    );
+    const status = root.querySelector<HTMLElement>('[data-md-status]');
+    const previewMode =
+      root.dataset.mdPreviewMode === 'banner' ? 'banner' : 'content';
+
+    if (!input || !preview || !writeTab || !previewTab) return;
+
+    const activeCls = [
+      'text-neutral-900',
+      'bg-neutral-100',
+      'dark:bg-neutral-800',
+      'dark:text-neutral-100',
+    ];
+    const inactiveCls = ['text-neutral-500', 'dark:text-neutral-400'];
+
+    function setTabState(
+      active: HTMLButtonElement,
+      inactive: HTMLButtonElement
+    ) {
+      active.classList.add(...activeCls);
+      active.classList.remove(...inactiveCls);
+      active.setAttribute('aria-selected', 'true');
+      inactive.classList.remove(...activeCls);
+      inactive.classList.add(...inactiveCls);
+      inactive.setAttribute('aria-selected', 'false');
+    }
+
+    writeTab.addEventListener('click', () => {
+      preview.classList.add('hidden');
+      input.classList.remove('hidden');
+      setTabState(writeTab, previewTab);
+    });
+
+    previewTab.addEventListener('click', async () => {
+      setTabState(previewTab, writeTab);
+      input.classList.add('hidden');
+      preview.classList.remove('hidden');
+      preview.innerHTML =
+        '<p class="text-sm text-neutral-500 dark:text-neutral-400">Rendering preview…</p>';
+
+      try {
+        const response = await fetch('/admin/api/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markdown: input.value, mode: previewMode }),
+        });
+
+        if (!response.ok)
+          throw new Error(`Preview failed (${response.status})`);
+
+        const data = await response.json();
+        preview.innerHTML =
+          data.html ||
+          '<p class="text-sm text-neutral-500 dark:text-neutral-400">Nothing to preview yet.</p>';
+      } catch (error) {
+        preview.innerHTML =
+          '<p class="text-sm text-red-600 dark:text-red-400">Could not render the preview. Check your connection and try again.</p>';
+        console.error(error);
+      }
+    });
+
+    // ── Image uploads (button, paste, drag & drop) ──
+
+    function setStatus(message: string, isError = false) {
+      if (!status) return;
+      status.textContent = message;
+      status.classList.toggle('hidden', !message);
+      status.classList.toggle('text-red-600', isError);
+      status.classList.toggle('dark:text-red-400', isError);
+      status.classList.toggle('text-neutral-500', !isError);
+      status.classList.toggle('dark:text-neutral-400', !isError);
+    }
+
+    function insertAtCursor(text: string) {
+      const start = input!.selectionStart ?? input!.value.length;
+      const end = input!.selectionEnd ?? start;
+      const before = input!.value.slice(0, start);
+      const after = input!.value.slice(end);
+
+      const needsLeadingBreak = before.length > 0 && !before.endsWith('\n');
+      const insertion = `${needsLeadingBreak ? '\n' : ''}${text}\n`;
+
+      input!.value = before + insertion + after;
+      const cursor = before.length + insertion.length;
+      input!.setSelectionRange(cursor, cursor);
+      input!.focus();
+      input!.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    async function uploadImages(files: File[]) {
+      const images = files.filter((file) => file.type.startsWith('image/'));
+      if (images.length === 0) return;
+
+      if (uploadBtn) uploadBtn.disabled = true;
+      setStatus(
+        images.length === 1
+          ? `Uploading “${images[0].name}”…`
+          : `Uploading ${images.length} images…`
+      );
+
+      try {
+        const body = new FormData();
+        images.forEach((image) => body.append('files', image));
+
+        const response = await fetch('/admin/api/upload', {
+          method: 'POST',
+          body,
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || `Upload failed (${response.status})`);
+        }
+
+        for (const file of data.files ?? []) {
+          const alt = String(file.name || 'Image').replace(/\.[a-z0-9]+$/i, '');
+          insertAtCursor(`![${alt}](${file.url})`);
+        }
+
+        setStatus(
+          data.files?.length === 1
+            ? 'Image uploaded and inserted.'
+            : `${data.files?.length ?? 0} images uploaded and inserted.`
+        );
+      } catch (error) {
+        setStatus(
+          error instanceof Error ? error.message : 'Upload failed.',
+          true
+        );
+        console.error(error);
+      } finally {
+        if (uploadBtn) uploadBtn.disabled = false;
+      }
+    }
+
+    if (uploadBtn && uploadInput) {
+      uploadBtn.addEventListener('click', () => uploadInput.click());
+      uploadInput.addEventListener('change', () => {
+        uploadImages(Array.from(uploadInput.files ?? []));
+        uploadInput.value = '';
+      });
+    }
+
+    input.addEventListener('paste', (event) => {
+      const files = Array.from(event.clipboardData?.files ?? []);
+      if (files.some((file) => file.type.startsWith('image/'))) {
+        event.preventDefault();
+        uploadImages(files);
+      }
+    });
+
+    input.addEventListener('dragover', (event) => {
+      if (event.dataTransfer?.types.includes('Files')) {
+        event.preventDefault();
+      }
+    });
+
+    input.addEventListener('drop', (event) => {
+      const files = Array.from(event.dataTransfer?.files ?? []);
+      if (files.some((file) => file.type.startsWith('image/'))) {
+        event.preventDefault();
+        uploadImages(files);
+      }
+    });
+  }
+
+  document
+    .querySelectorAll<HTMLElement>('[data-md-editor]')
+    .forEach((editor) => setupEditor(editor));
+</script>

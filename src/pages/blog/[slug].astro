@@ -1,24 +1,13 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedBlogPosts, getBlogPostBySlug } from '../../lib/notion-blog';
-import { getPublishedProjects } from '../../lib/notion-projects';
+import { getBlogPostBySlug } from '../../lib/blog';
+import { getPublishedProjects } from '../../lib/projects';
 
-export async function getStaticPaths() {
-  const posts = await getPublishedBlogPosts();
-  return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: { post },
-  }));
-}
+const slug = Astro.params.slug;
+const post = slug ? await getBlogPostBySlug(slug) : undefined;
 
-const { post: entry } = Astro.props;
-if (!entry || !entry.slug) {
-  throw new Error('Blog post not found');
-}
-
-const post = await getBlogPostBySlug(entry.slug);
 if (!post) {
-  throw new Error(`Blog post not found for slug: ${entry.slug}`);
+  return Astro.redirect('/404');
 }
 
 const projects = await getPublishedProjects();
@@ -30,10 +19,7 @@ const tagCls =
   'inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300';
 ---
 
-<BaseLayout
-  title={`${post.title} | Paul Savvas`}
-  description={post.summary}
->
+<BaseLayout title={`${post.title} | Paul Savvas`} description={post.summary}>
   <div
     class="min-h-screen bg-white font-sans dark:bg-neutral-950 transition-colors"
   >
@@ -87,7 +73,11 @@ const tagCls =
                       class="h-6 w-6"
                       aria-hidden="true"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5h16.5M6 4.5h12a2.25 2.25 0 0 1 2.25 2.25v10.5A2.25 2.25 0 0 1 18 19.5H6a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 6 4.5Z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3.75 7.5h16.5M6 4.5h12a2.25 2.25 0 0 1 2.25 2.25v10.5A2.25 2.25 0 0 1 18 19.5H6a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 6 4.5Z"
+                      />
                     </svg>
                   </span>
                   <div class="min-w-0">
@@ -111,8 +101,7 @@ const tagCls =
         <article
           class="mt-10 space-y-5 animate-fade-in-up prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight"
           set:html={post.bodyHtml ?? ''}
-        >
-        </article>
+        />
       </div>
     </main>
   </div>

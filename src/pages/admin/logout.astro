@@ -1,0 +1,27 @@
+---
+import { getAuth, isAuthConfigured } from '../../lib/auth';
+
+// Revokes the session in the database and clears the cookie, then returns to
+// the login page. POST-only in practice — the nav renders this as a form.
+const redirect = new Response(null, {
+  status: 302,
+  headers: { Location: '/admin/login' },
+});
+
+if (isAuthConfigured()) {
+  try {
+    const result = await getAuth().api.signOut({
+      headers: Astro.request.headers,
+      asResponse: true,
+    });
+
+    for (const cookie of result.headers.getSetCookie()) {
+      redirect.headers.append('set-cookie', cookie);
+    }
+  } catch (error) {
+    console.error('Sign-out failed.', error);
+  }
+}
+
+return redirect;
+---

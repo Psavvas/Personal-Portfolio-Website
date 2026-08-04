@@ -1,0 +1,129 @@
+---
+import DbErrorNotice from '../../../components/admin/DbErrorNotice.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import {
+  adminDeleteBlogPost,
+  adminListBlogPosts,
+  type AdminBlogPost,
+} from '../../../lib/blog';
+
+let dbError = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('_action') === 'delete') {
+    const id = String(form.get('id') ?? '');
+    if (id) {
+      await adminDeleteBlogPost(id);
+    }
+    return Astro.redirect('/admin/blog?deleted=1');
+  }
+}
+
+let posts: AdminBlogPost[] = [];
+try {
+  posts = await adminListBlogPosts();
+} catch (error) {
+  dbError = error instanceof Error ? error.message : String(error);
+}
+const saved = Astro.url.searchParams.has('saved');
+const deleted = Astro.url.searchParams.has('deleted');
+
+const badgeCls: Record<string, string> = {
+  published:
+    'inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+  draft:
+    'inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300',
+};
+---
+
+<AdminLayout title="Blog">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1
+        class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+      >
+        Blog posts
+      </h1>
+      <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+        Everything here, drafts included. Only published posts appear on the
+        site.
+      </p>
+    </div>
+    <a href="/admin/blog/new" class="site-btn hover-lift">+ New post</a>
+  </header>
+
+  {dbError && <DbErrorNotice message={dbError} />}
+
+  {
+    (saved || deleted) && (
+      <div class="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        {saved ? 'Post saved.' : 'Post deleted.'}
+      </div>
+    )
+  }
+
+  <ul
+    class="mt-8 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    {
+      posts.length === 0 && (
+        <li class="p-6 text-sm text-neutral-500 dark:text-neutral-400">
+          No posts yet — write your first one.
+        </li>
+      )
+    }
+    {
+      posts.map((post) => (
+        <li class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                href={`/admin/blog/${post.id}`}
+                class="text-sm font-medium text-neutral-900 hover:underline dark:text-neutral-100"
+              >
+                {post.title}
+              </a>
+              <span class={badgeCls[post.visibility]}>{post.visibility}</span>
+            </div>
+            <p class="mt-1 truncate text-sm text-neutral-600 dark:text-neutral-400">
+              {post.date} · /blog/{post.slug}
+            </p>
+          </div>
+
+          <div class="flex shrink-0 items-center gap-2">
+            {post.visibility === 'published' && (
+              <a
+                href={`/blog/${post.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="site-btn site-btn--sm hover-lift"
+              >
+                View
+              </a>
+            )}
+            <a
+              href={`/admin/blog/${post.id}`}
+              class="site-btn site-btn--sm hover-lift"
+            >
+              Edit
+            </a>
+            <form
+              method="post"
+              onsubmit={`return confirm('Delete “${post.title.replace(/'/g, "\\'")}”? This cannot be undone.')`}
+            >
+              <input type="hidden" name="_action" value="delete" />
+              <input type="hidden" name="id" value={post.id} />
+              <button
+                type="submit"
+                class="rounded-md px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</AdminLayout>

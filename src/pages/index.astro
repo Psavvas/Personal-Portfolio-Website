@@ -4,8 +4,8 @@ import {
   getLatestProject,
   getProjectDestination,
   getPublishedProjects,
-} from '../lib/notion-projects';
-import { getPublishedBlogPosts } from '../lib/notion-blog';
+} from '../lib/projects';
+import { getPublishedBlogPosts } from '../lib/blog';
 
 const projects = await getPublishedProjects();
 const blogPosts = await getPublishedBlogPosts();
@@ -88,7 +88,10 @@ const blogCount = blogPosts.length;
                 rel="noopener noreferrer"
                 aria-label="Open site status page"
               >
-                <span id="ps-home-status-dot" class="live-dot" aria-hidden="true"></span>
+                <span
+                  id="ps-home-status-dot"
+                  class="live-dot"
+                  aria-hidden="true"></span>
                 <span id="ps-home-status-label">Live</span>
               </a>
             </div>
@@ -107,8 +110,7 @@ const blogCount = blogPosts.length;
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
+                      stroke-width="1.8"></path>
                   </svg>
                   Latest project
                 </p>
@@ -169,8 +171,7 @@ const blogCount = blogPosts.length;
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
+                      stroke-width="1.8"></path>
                   </svg>
                   Latest blog post
                 </p>
@@ -218,8 +219,7 @@ const blogCount = blogPosts.length;
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
+                      stroke-width="1.8"></path>
                   </svg>
                   Projects
                 </p>
@@ -258,8 +258,7 @@ const blogCount = blogPosts.length;
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
+                      stroke-width="1.8"></path>
                   </svg>
                   Blog posts
                 </p>
@@ -300,8 +299,7 @@ const blogCount = blogPosts.length;
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
+                      stroke-width="1.8"></path>
                   </svg>
                   School
                 </p>
@@ -321,8 +319,7 @@ const blogCount = blogPosts.length;
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
+                      stroke-width="1.8"></path>
                   </svg>
                   Location
                 </p>
@@ -459,7 +456,9 @@ const blogCount = blogPosts.length;
         attributeFilter: ['class'],
       });
 
-      fetch('https://paulsavvas.instatus.com/summary.json', { cache: 'no-store' })
+      fetch('https://paulsavvas.instatus.com/summary.json', {
+        cache: 'no-store',
+      })
         .then(function (response) {
           if (!response.ok) throw new Error('Status request failed');
           return response.json();

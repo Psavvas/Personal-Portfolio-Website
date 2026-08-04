@@ -5,7 +5,7 @@ import {
   formatProjectYear,
   getProjectDestination,
   getPublishedProjects,
-} from '../../lib/notion-projects';
+} from '../../lib/projects';
 
 const pageTitle = 'Projects | Paul Savvas';
 const pageDesc =
@@ -196,7 +196,13 @@ const actionCls = 'site-btn hover-lift';
               const yr = formatProjectYear(proj.year);
               const smallTagCls =
                 'inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300';
-              const searchText = [proj.title, proj.summary, yr, ...proj.tags]
+              const searchText = [
+                proj.title,
+                proj.summary,
+                yr,
+                ...proj.tags,
+                proj.aiBuilt ? 'built with ai vibe coded' : undefined,
+              ]
                 .filter(Boolean)
                 .join(' ')
                 .toLowerCase();
@@ -206,7 +212,7 @@ const actionCls = 'site-btn hover-lift';
                   class="p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up"
                 >
                   <div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <span class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                         {proj.title}
                       </span>

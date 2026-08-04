@@ -1,0 +1,146 @@
+---
+import DbErrorNotice from '../../../components/admin/DbErrorNotice.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import {
+  adminDeleteProject,
+  adminListProjects,
+  type AdminProject,
+} from '../../../lib/projects';
+
+let dbError = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('_action') === 'delete') {
+    const id = String(form.get('id') ?? '');
+    if (id) {
+      await adminDeleteProject(id);
+    }
+    return Astro.redirect('/admin/projects?deleted=1');
+  }
+}
+
+let projects: AdminProject[] = [];
+try {
+  projects = await adminListProjects();
+} catch (error) {
+  dbError = error instanceof Error ? error.message : String(error);
+}
+const saved = Astro.url.searchParams.has('saved');
+const deleted = Astro.url.searchParams.has('deleted');
+
+const badgeCls: Record<string, string> = {
+  published:
+    'inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+  draft:
+    'inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300',
+};
+---
+
+<AdminLayout title="Projects">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1
+        class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+      >
+        Projects
+      </h1>
+      <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+        Everything here, drafts included. Only published projects appear on the
+        site.
+      </p>
+    </div>
+    <a href="/admin/projects/new" class="site-btn hover-lift">+ New project</a>
+  </header>
+
+  {dbError && <DbErrorNotice message={dbError} />}
+
+  {
+    (saved || deleted) && (
+      <div class="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        {saved ? 'Project saved.' : 'Project deleted.'}
+      </div>
+    )
+  }
+
+  <ul
+    class="mt-8 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    {
+      projects.length === 0 && (
+        <li class="p-6 text-sm text-neutral-500 dark:text-neutral-400">
+          No projects yet — create your first one.
+        </li>
+      )
+    }
+    {
+      projects.map((project) => (
+        <li class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                href={`/admin/projects/${project.id}`}
+                class="text-sm font-medium text-neutral-900 hover:underline dark:text-neutral-100"
+              >
+                {project.title}
+              </a>
+              <span class={badgeCls[project.visibility]}>
+                {project.visibility}
+              </span>
+              {project.featured && (
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                  featured
+                </span>
+              )}
+              {project.aiBuilt && (
+                <span class="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-[11px] font-medium text-violet-800 dark:bg-violet-950 dark:text-violet-300">
+                  ✦ AI
+                </span>
+              )}
+            </div>
+            <p class="mt-1 truncate text-sm text-neutral-600 dark:text-neutral-400">
+              {project.year && <span>{project.year} · </span>}
+              {project.projectPage && project.slug
+                ? `/projects/${project.slug}`
+                : project.projectInfoUrl || 'no destination'}
+            </p>
+          </div>
+
+          <div class="flex shrink-0 items-center gap-2">
+            {project.visibility === 'published' &&
+              project.projectPage &&
+              project.slug && (
+                <a
+                  href={`/projects/${project.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="site-btn site-btn--sm hover-lift"
+                >
+                  View
+                </a>
+              )}
+            <a
+              href={`/admin/projects/${project.id}`}
+              class="site-btn site-btn--sm hover-lift"
+            >
+              Edit
+            </a>
+            <form
+              method="post"
+              onsubmit={`return confirm('Delete “${project.title.replace(/'/g, "\\'")}”? This cannot be undone.')`}
+            >
+              <input type="hidden" name="_action" value="delete" />
+              <input type="hidden" name="id" value={project.id} />
+              <button
+                type="submit"
+                class="rounded-md px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</AdminLayout>
