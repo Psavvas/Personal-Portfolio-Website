@@ -1,0 +1,137 @@
+---
+import DbErrorNotice from '../../../components/admin/DbErrorNotice.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import {
+  BANNER_COLOR_CLASSES,
+  BANNER_SCOPES,
+  adminDeleteBanner,
+  adminListBanners,
+  type Banner,
+} from '../../../lib/banners';
+
+let dbError = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('_action') === 'delete') {
+    const id = String(form.get('id') ?? '');
+    if (id) await adminDeleteBanner(id);
+    return Astro.redirect('/admin/banners?deleted=1');
+  }
+}
+
+let banners: Banner[] = [];
+try {
+  banners = await adminListBanners();
+} catch (error) {
+  dbError = error instanceof Error ? error.message : String(error);
+}
+
+const saved = Astro.url.searchParams.has('saved');
+const deleted = Astro.url.searchParams.has('deleted');
+
+function describeScope(banner: Banner): string {
+  if (banner.scope === 'paths') {
+    const count = banner.paths.length;
+    return `${count} ${count === 1 ? 'page' : 'pages'}`;
+  }
+  return (
+    BANNER_SCOPES.find((scope) => scope.value === banner.scope)?.label ??
+    banner.scope
+  );
+}
+---
+
+<AdminLayout title="Banners">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1
+        class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+      >
+        Banners
+      </h1>
+      <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+        Full-width announcements shown above the navigation. Several can be
+        active at once.
+      </p>
+    </div>
+    <a href="/admin/banners/new" class="site-btn hover-lift">+ New banner</a>
+  </header>
+
+  {dbError && <DbErrorNotice message={dbError} />}
+
+  {
+    (saved || deleted) && (
+      <div class="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        {saved ? 'Banner saved.' : 'Banner deleted.'}
+      </div>
+    )
+  }
+
+  <ul
+    class="mt-8 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900"
+  >
+    {
+      banners.length === 0 && !dbError && (
+        <li class="p-6 text-sm text-neutral-500 dark:text-neutral-400">
+          No banners yet — create your first one.
+        </li>
+      )
+    }
+    {
+      banners.map((banner) => (
+        <li class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${BANNER_COLOR_CLASSES[banner.color]}`}
+              >
+                {banner.color}
+              </span>
+              <span class="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                {describeScope(banner)}
+              </span>
+              {banner.active ? (
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  active
+                </span>
+              ) : (
+                <span class="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                  hidden
+                </span>
+              )}
+            </div>
+            <a
+              href={`/admin/banners/${banner.id}`}
+              class="mt-2 block truncate text-sm font-medium text-neutral-900 hover:underline dark:text-neutral-100"
+            >
+              {banner.bodyMd.replace(/\s+/g, ' ').trim() || 'Untitled banner'}
+            </a>
+          </div>
+
+          <div class="flex shrink-0 items-center gap-2">
+            <a
+              href={`/admin/banners/${banner.id}`}
+              class="site-btn site-btn--sm hover-lift"
+            >
+              Edit
+            </a>
+            <form
+              method="post"
+              onsubmit="return confirm('Delete this banner? This cannot be undone.')"
+            >
+              <input type="hidden" name="_action" value="delete" />
+              <input type="hidden" name="id" value={banner.id} />
+              <button
+                type="submit"
+                class="rounded-md px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</AdminLayout>

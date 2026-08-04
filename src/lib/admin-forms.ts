@@ -1,3 +1,11 @@
+import {
+  BANNER_COLORS,
+  BANNER_SCOPES,
+  normalizePath,
+  type BannerColor,
+  type BannerScope,
+} from './banner-colors';
+import type { BannerInput } from './banners';
 import type { BlogPostInput } from './blog';
 import type { ProjectInput } from './projects';
 
@@ -107,6 +115,62 @@ export function parseBlogPostForm(form: FormData): BlogPostInput {
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateIso)) {
     throw new Error('A publish date is required.');
+  }
+
+  return input;
+}
+
+/** Unvalidated read of the banner form, for repopulating after an error. */
+export function readBannerForm(form: FormData): BannerInput {
+  const color = String(form.get('color') ?? '');
+  const scope = String(form.get('scope') ?? '');
+
+  // Checked pages come through as repeated `paths` values; the free-form box
+  // lets the owner target anything the checkbox list doesn't cover.
+  const checked = form
+    .getAll('paths')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const extra = String(form.get('extraPaths') ?? '')
+    .split(/[\n,]/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const paths = Array.from(
+    new Set(
+      [...checked, ...extra]
+        .map((path) => (path.startsWith('/') ? path : `/${path}`))
+        .map(normalizePath)
+    )
+  );
+
+  const sortOrder = Number(String(form.get('sortOrder') ?? '0'));
+
+  return {
+    bodyMd: String(form.get('bodyMd') ?? ''),
+    color: BANNER_COLORS.some((option) => option.value === color)
+      ? (color as BannerColor)
+      : 'neutral',
+    scope: BANNER_SCOPES.some((option) => option.value === scope)
+      ? (scope as BannerScope)
+      : 'all',
+    paths,
+    active: checkbox(form, 'active'),
+    sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
+  };
+}
+
+export function parseBannerForm(form: FormData): BannerInput {
+  const input = readBannerForm(form);
+
+  if (!input.bodyMd.trim()) {
+    throw new Error('Banner text is required.');
+  }
+
+  if (input.scope === 'paths' && input.paths.length === 0) {
+    throw new Error(
+      'Pick at least one page, or change where the banner shows.'
+    );
   }
 
   return input;

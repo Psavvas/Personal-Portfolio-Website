@@ -171,6 +171,19 @@ export function renderMarkdown(markdown: string): string {
   return arrangeProjectMedia(html).trim();
 }
 
+// Banners are a thin strip of text above the nav, so they deliberately skip
+// the project/blog pipeline: a pasted YouTube link should stay a link rather
+// than expanding into an embedded player, and images stay plain <img> tags.
+const bannerRenderer = new Marked();
+
+/** Render Markdown for a site banner. Links stay links; no media embeds. */
+export function renderBannerMarkdown(markdown: string): string {
+  const source = markdown?.trim();
+  if (!source) return '';
+
+  return (bannerRenderer.parse(source, { async: false }) as string).trim();
+}
+
 function buildTopLinksHtml(html: string): string {
   const linkPattern = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
   const links: Array<{ href: string; label: string; external: boolean }> = [];

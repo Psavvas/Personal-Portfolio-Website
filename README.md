@@ -16,7 +16,7 @@ Then open <http://localhost:4321>. The admin portal is at <http://localhost:4321
 
 Content and admin accounts both live in a [Neon](https://console.neon.tech) Postgres database. Put its **connection string** in `DATABASE_URL` (locally in `.env`, and on Vercel under _Settings → Environment Variables_), and set `BETTER_AUTH_SECRET` to a long random value (`openssl rand -base64 32`) in the same places.
 
-The database holds these tables: `projects`, `blog_posts`, `redirects`, and `site_content` for site content, plus `user`, `session`, `account`, and `verification` for Better Auth.
+The database holds these tables: `projects`, `blog_posts`, `banners`, `redirects`, and `site_content` for site content, plus `user`, `session`, `account`, and `verification` for Better Auth.
 
 ## Environment variables
 
@@ -34,6 +34,7 @@ Sign in at `/admin` with your email and password. From there you can:
 - **Projects** — create, edit, publish/unpublish, and delete projects. Page content is written in Markdown; links placed above a `---` divider become the button row at the top of the project page.
 - **Blog** — write posts in Markdown with live preview, tags, publish dates, and an optional featured project.
 - **Redirects** — manage `paulsavvas.com/redirect/<slug>` short links.
+- **Banners** — full-width announcements above the navigation, written in Markdown with a colour, an on/off switch, and a stacking order. Choose where each one shows (all pages, home only, or a hand-picked set of pages including individual projects and blog posts); several can be active at once. Anything longer than two lines gets a "Learn more" button that expands it.
 - **Now section** — edit the Markdown blurb shown on the About page.
 - **Account** — change your password (which signs other devices out).
 

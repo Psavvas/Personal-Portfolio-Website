@@ -1,0 +1,153 @@
+---
+import { BANNER_COLOR_CLASSES, getBannersForPath } from '../lib/banners';
+
+const banners = await getBannersForPath(Astro.url.pathname);
+---
+
+{
+  banners.length > 0 && (
+    <div class="w-full">
+      {banners.map((banner) => (
+        <section
+          class={`w-full border-b ${BANNER_COLOR_CLASSES[banner.color]}`}
+          data-site-banner
+          aria-label="Site announcement"
+        >
+          <div class="mx-auto flex max-w-6xl items-start gap-x-4 px-4 py-3 sm:px-6">
+            <div
+              class="banner-content min-w-0 flex-1 text-sm leading-6"
+              data-banner-content
+              set:html={banner.bodyHtml}
+            />
+            <button
+              type="button"
+              data-banner-toggle
+              aria-expanded="false"
+              hidden
+              class="shrink-0 rounded-md border border-current/25 px-2.5 py-1 text-xs font-medium underline-offset-2 transition-opacity hover:opacity-70"
+            >
+              Learn more
+            </button>
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+<style>
+  /* Collapsed height ≈ two lines of `text-sm`/`leading-6` text. */
+  .banner-content {
+    max-height: 3rem;
+    overflow: hidden;
+  }
+
+  .banner-content.is-expanded {
+    max-height: none;
+  }
+
+  /* The body is injected with set:html, so descendants need :global(). */
+  .banner-content :global(p),
+  .banner-content :global(ul),
+  .banner-content :global(ol) {
+    margin: 0;
+  }
+
+  .banner-content :global(* + p),
+  .banner-content :global(* + ul),
+  .banner-content :global(* + ol) {
+    margin-top: 0.5rem;
+  }
+
+  .banner-content :global(ul),
+  .banner-content :global(ol) {
+    padding-left: 1.25rem;
+  }
+
+  .banner-content :global(ul) {
+    list-style: disc;
+  }
+
+  .banner-content :global(ol) {
+    list-style: decimal;
+  }
+
+  .banner-content :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .banner-content :global(strong) {
+    font-weight: 600;
+  }
+
+  .banner-content :global(code) {
+    border-radius: 0.25rem;
+    background-color: rgb(0 0 0 / 0.06);
+    padding: 0.05rem 0.3rem;
+    font-size: 0.85em;
+  }
+
+  :global(html.dark) .banner-content :global(code) {
+    background-color: rgb(255 255 255 / 0.12);
+  }
+
+  .banner-content :global(img) {
+    display: inline-block;
+    max-height: 1.5rem;
+    width: auto;
+  }
+
+  .banner-content :global(h1),
+  .banner-content :global(h2),
+  .banner-content :global(h3) {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  // Shows "Learn more" only when the banner is actually taller than its
+  // collapsed height, so short banners stay a clean single strip.
+  function setupBanner(section: HTMLElement) {
+    const content = section.querySelector<HTMLElement>('[data-banner-content]');
+    const toggle = section.querySelector<HTMLButtonElement>(
+      '[data-banner-toggle]'
+    );
+    if (!content || !toggle) return;
+
+    let expanded = false;
+
+    function overflows(): boolean {
+      // Measure against the collapsed state, whatever the current state is.
+      const wasExpanded = content!.classList.contains('is-expanded');
+      if (wasExpanded) content!.classList.remove('is-expanded');
+      const isOverflowing = content!.scrollHeight > content!.clientHeight + 2;
+      if (wasExpanded) content!.classList.add('is-expanded');
+      return isOverflowing;
+    }
+
+    function refresh() {
+      // An expanded banner keeps its button so it can be collapsed again.
+      toggle!.hidden = !expanded && !overflows();
+    }
+
+    toggle.addEventListener('click', () => {
+      expanded = !expanded;
+      content.classList.toggle('is-expanded', expanded);
+      toggle.setAttribute('aria-expanded', String(expanded));
+      toggle.textContent = expanded ? 'Show less' : 'Learn more';
+    });
+
+    refresh();
+    // Re-measure once fonts have settled and whenever the width changes.
+    requestAnimationFrame(refresh);
+    document.fonts?.ready.then(refresh).catch(() => {});
+    window.addEventListener('resize', refresh);
+  }
+
+  document
+    .querySelectorAll<HTMLElement>('[data-site-banner]')
+    .forEach(setupBanner);
+</script>

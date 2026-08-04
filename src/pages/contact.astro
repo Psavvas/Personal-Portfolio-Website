@@ -1,5 +1,7 @@
 ---
-export const prerender = true;
+// Server-rendered like the rest of the site so admin banners appear here
+// too; prerendering would freeze them at build time.
+export const prerender = false;
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 

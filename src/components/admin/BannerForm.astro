@@ -1,0 +1,233 @@
+---
+import MarkdownEditor from './MarkdownEditor.astro';
+import {
+  BANNER_COLORS,
+  BANNER_COLOR_CLASSES,
+  BANNER_SCOPES,
+  type BannerInput,
+} from '../../lib/banners';
+
+export interface PageOption {
+  path: string;
+  label: string;
+}
+
+interface Props {
+  values?: Partial<BannerInput>;
+  pageGroups: Array<{ heading: string; options: PageOption[] }>;
+  submitLabel: string;
+}
+
+const { values = {}, pageGroups, submitLabel } = Astro.props;
+
+const selectedPaths = new Set(values.paths ?? []);
+const knownPaths = new Set(
+  pageGroups.flatMap((group) => group.options.map((option) => option.path))
+);
+// Anything targeted that isn't in the checkbox list goes back in the free-form
+// box so editing a banner never silently drops a path.
+const extraPaths = (values.paths ?? []).filter((path) => !knownPaths.has(path));
+
+const inputCls =
+  'mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-500';
+const labelCls =
+  'block text-sm font-medium text-neutral-900 dark:text-neutral-100';
+const helpCls = 'mt-1 text-xs text-neutral-500 dark:text-neutral-400';
+---
+
+<form method="post" class="space-y-6" data-banner-form>
+  <MarkdownEditor
+    name="bodyMd"
+    label="Banner text (Markdown)"
+    value={values.bodyMd ?? ''}
+    rows={5}
+    previewMode="banner"
+    allowUploads={false}
+    hint="Keep it short. **bold**, *italic*, and [links](https://…) all work. Anything longer than two lines gets a “Learn more” button that expands the banner."
+  />
+
+  <div class="grid gap-6 md:grid-cols-3">
+    <div>
+      <label for="color" class={labelCls}>Colour</label>
+      <select id="color" name="color" class={inputCls} data-banner-color>
+        {
+          BANNER_COLORS.map((option) => (
+            <option
+              value={option.value}
+              selected={(values.color ?? 'neutral') === option.value}
+            >
+              {option.label}
+            </option>
+          ))
+        }
+      </select>
+      <div
+        class={`mt-2 rounded-lg border px-3 py-2 text-xs ${BANNER_COLOR_CLASSES[values.color ?? 'neutral']}`}
+        data-banner-swatch
+      >
+        Preview of this colour
+      </div>
+    </div>
+
+    <div>
+      <label for="sortOrder" class={labelCls}>Order</label>
+      <input
+        id="sortOrder"
+        name="sortOrder"
+        type="number"
+        step="1"
+        value={String(values.sortOrder ?? 0)}
+        class={inputCls}
+      />
+      <p class={helpCls}>
+        Lower numbers stack above higher ones when several banners show at once.
+      </p>
+    </div>
+
+    <div
+      class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+    >
+      <label class="flex items-start gap-3">
+        <input
+          type="checkbox"
+          name="active"
+          checked={values.active ?? true}
+          class="mt-0.5 h-4 w-4 rounded border-neutral-300"
+        />
+        <span>
+          <span class={labelCls}>Active</span>
+          <span class={helpCls}>Uncheck to hide it without deleting it.</span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div>
+    <label for="scope" class={labelCls}>Where it shows</label>
+    <select
+      id="scope"
+      name="scope"
+      class={`${inputCls} md:w-1/2`}
+      data-banner-scope
+    >
+      {
+        BANNER_SCOPES.map((option) => (
+          <option
+            value={option.value}
+            selected={(values.scope ?? 'all') === option.value}
+          >
+            {option.label}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+
+  <div
+    class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+    data-banner-paths
+    hidden={(values.scope ?? 'all') !== 'paths'}
+  >
+    <p class={labelCls}>Pages</p>
+    <p class={helpCls}>Tick every page this banner should appear on.</p>
+
+    <div class="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        pageGroups.map((group) => (
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              {group.heading}
+            </p>
+            <ul class="mt-2 space-y-1">
+              {group.options.length === 0 && (
+                <li class="text-xs text-neutral-500 dark:text-neutral-400">
+                  None yet.
+                </li>
+              )}
+              {group.options.map((option) => (
+                <li>
+                  <label class="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+                    <input
+                      type="checkbox"
+                      name="paths"
+                      value={option.path}
+                      checked={selectedPaths.has(option.path)}
+                      class="mt-1 h-4 w-4 rounded border-neutral-300"
+                    />
+                    <span class="min-w-0">
+                      <span class="block truncate">{option.label}</span>
+                      <span class="block truncate text-xs text-neutral-500 dark:text-neutral-400">
+                        {option.path}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-6">
+      <label for="extraPaths" class={labelCls}>Other paths</label>
+      <textarea
+        id="extraPaths"
+        name="extraPaths"
+        rows="2"
+        placeholder="/redirect/talk"
+        class={inputCls}>{extraPaths.join('\n')}</textarea
+      >
+      <p class={helpCls}>One per line, for anything not listed above.</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="site-btn hover-lift">{submitLabel}</button>
+    <a
+      href="/admin/banners"
+      class="text-sm font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+    >
+      Cancel
+    </a>
+  </div>
+</form>
+
+<script>
+  // Imported from the constants-only module: importing ../../lib/banners here
+  // would pull the Postgres driver into the browser bundle.
+  import { BANNER_COLOR_CLASSES } from '../../lib/banner-colors';
+
+  document
+    .querySelectorAll<HTMLFormElement>('[data-banner-form]')
+    .forEach((form) => {
+      const scope = form.querySelector<HTMLSelectElement>(
+        '[data-banner-scope]'
+      );
+      const paths = form.querySelector<HTMLElement>('[data-banner-paths]');
+      const color = form.querySelector<HTMLSelectElement>(
+        '[data-banner-color]'
+      );
+      const swatch = form.querySelector<HTMLElement>('[data-banner-swatch]');
+
+      if (scope && paths) {
+        scope.addEventListener('change', () => {
+          paths.hidden = scope.value !== 'paths';
+        });
+      }
+
+      if (color && swatch) {
+        const allClasses = Object.values(BANNER_COLOR_CLASSES).flatMap(
+          (value) => value.split(' ')
+        );
+        color.addEventListener('change', () => {
+          swatch.classList.remove(...allClasses);
+          const next =
+            BANNER_COLOR_CLASSES[
+              color.value as keyof typeof BANNER_COLOR_CLASSES
+            ] ?? BANNER_COLOR_CLASSES.neutral;
+          swatch.classList.add(...next.split(' '));
+        });
+      }
+    });
+</script>

@@ -5,6 +5,10 @@ interface Props {
   value?: string;
   rows?: number;
   hint?: string;
+  /** Which render pipeline the preview should use. */
+  previewMode?: 'content' | 'banner';
+  /** Banners are short — hide the image upload controls for them. */
+  allowUploads?: boolean;
 }
 
 const {
@@ -13,10 +17,12 @@ const {
   value = '',
   rows = 18,
   hint = 'Markdown supported: **bold**, *italic*, # headings, - lists, [links](https://…), ![images](https://…). YouTube/Vimeo links become embedded players.',
+  previewMode = 'content',
+  allowUploads = true,
 } = Astro.props;
 ---
 
-<div class="js-md-editor" data-md-editor>
+<div class="js-md-editor" data-md-editor data-md-preview-mode={previewMode}>
   <div class="flex flex-wrap items-center justify-between gap-3">
     <label
       for={`md-${name}`}
@@ -26,34 +32,40 @@ const {
     </label>
 
     <div class="flex items-center gap-2">
-      <button
-        type="button"
-        data-md-upload-btn
-        class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:text-neutral-900 dark:border-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
-      >
-        <svg
-          class="h-3.5 w-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M4 16.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1.5Zm0 0 4.5-4.5a1.5 1.5 0 0 1 2.1 0l5.4 5.4M14 13.5l1.9-1.9a1.5 1.5 0 0 1 2.1 0L20 13.5M15 8.5h.01"
-          ></path>
-        </svg>
-        Insert image
-      </button>
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        class="hidden"
-        data-md-upload-input
-      />
+      {
+        allowUploads && (
+          <>
+            <button
+              type="button"
+              data-md-upload-btn
+              class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:text-neutral-900 dark:border-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+            >
+              <svg
+                class="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 16.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1.5Zm0 0 4.5-4.5a1.5 1.5 0 0 1 2.1 0l5.4 5.4M14 13.5l1.9-1.9a1.5 1.5 0 0 1 2.1 0L20 13.5M15 8.5h.01"
+                />
+              </svg>
+              Insert image
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              class="hidden"
+              data-md-upload-input
+            />
+          </>
+        )
+      }
 
       <div
         class="inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-800"
@@ -98,8 +110,11 @@ const {
   <p data-md-status class="mt-2 hidden text-xs leading-5"></p>
 
   <p class="mt-2 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
-    {hint} You can also paste or drag &amp; drop images straight into the editor —
-    they upload to UploadThing automatically.
+    {hint}
+    {
+      allowUploads &&
+        ' You can also paste or drag & drop images straight into the editor — they upload to UploadThing automatically.'
+    }
   </p>
 </div>
 
@@ -120,6 +135,8 @@ const {
       '[data-md-upload-input]'
     );
     const status = root.querySelector<HTMLElement>('[data-md-status]');
+    const previewMode =
+      root.dataset.mdPreviewMode === 'banner' ? 'banner' : 'content';
 
     if (!input || !preview || !writeTab || !previewTab) return;
 
@@ -160,7 +177,7 @@ const {
         const response = await fetch('/admin/api/preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ markdown: input.value }),
+          body: JSON.stringify({ markdown: input.value, mode: previewMode }),
         });
 
         if (!response.ok)

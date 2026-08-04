@@ -1,6 +1,7 @@
 ---
 import '../styles/globals.css';
 import Analytics from '@vercel/analytics/astro';
+import SiteBanners from '../components/SiteBanners.astro';
 
 interface Props {
   title: string;
@@ -73,6 +74,9 @@ const currentYear = new Date().getFullYear();
   </head>
 
   <body>
+    {/* ── Site banners (above the navbar, full width) ── */}
+    <SiteBanners />
+
     {/* ── Navbar ── */}
     <header
       id="ps-navbar"
